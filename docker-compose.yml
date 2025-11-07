@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: development
+    container_name: autochek-api
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./autochek.db:/app/autochek.db
+      - ./uploads:/app/uploads
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_PATH=/app/autochek.db
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-24h}
+      - RAPIDAPI_KEY=${RAPIDAPI_KEY:-}
+      - RAPIDAPI_HOST=${RAPIDAPI_HOST:-vin-lookup.p.rapidapi.com}
+      - USD_TO_NGN_RATE=${USD_TO_NGN_RATE:-1500}
+      - DEFAULT_LTV_CAP=${DEFAULT_LTV_CAP:-1.10}
+      - DEFAULT_APR=${DEFAULT_APR:-0.15}
+      - MAX_TERM_MONTHS=${MAX_TERM_MONTHS:-72}
+      - MIN_DOWN_PAYMENT_PCT=${MIN_DOWN_PAYMENT_PCT:-0.30}
+    command: sh -c "npm run migration:run && npm run seed && npm run start:dev"
+    restart: unless-stopped
+    networks:
+      - autochek-network
+
+networks:
+  autochek-network:
+    driver: bridge
+
