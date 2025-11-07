@@ -5,7 +5,6 @@ import { VehicleStatus } from '../entities/vehicle.entity';
 
 export class VehicleFilterDto extends PaginationDto {
   @ApiPropertyOptional({ 
-    example: 'LISTED', 
     description: 'Filter by vehicle status (comma-separated for multiple: LISTED,INSPECTED). Use "all" to show all statuses. Default: LISTED,INSPECTED',
     enum: [...Object.values(VehicleStatus), 'all']
   })
@@ -14,76 +13,66 @@ export class VehicleFilterDto extends PaginationDto {
   status?: string;
 
   @ApiPropertyOptional({ 
-    example: 'owner', 
-    description: 'Filter by owner - use "owner" to get vehicles posted by authenticated user, or provide specific userId'
+    description: 'Filter by owner ID (e.g., uuid). Use "owner" to get vehicles posted by authenticated user'
   })
   @IsOptional()
   @IsString()
   ownerId?: string;
 
   @ApiPropertyOptional({ 
-    example: 'Toyota Camry', 
-    description: 'Search by make, model, or VIN'
+    description: 'Search by make, model, or VIN (e.g., "Toyota Camry")'
   })
   @IsOptional()
   @IsString()
   search?: string;
 
   @ApiPropertyOptional({ 
-    example: 'Toyota', 
-    description: 'Filter by vehicle make'
+    description: 'Filter by vehicle make (e.g., Toyota, Honda, Ford)'
   })
   @IsOptional()
   @IsString()
   make?: string;
 
   @ApiPropertyOptional({ 
-    example: 'foreign_used', 
-    description: 'Filter by vehicle type'
+    description: 'Filter by vehicle type (e.g., foreign_used, local_used, brand_new)'
   })
   @IsOptional()
   @IsString()
   vehicleType?: string;
 
   @ApiPropertyOptional({ 
-    example: 'Lagos', 
-    description: 'Filter by region'
+    description: 'Filter by region (e.g., Lagos, Abuja, Port Harcourt)'
   })
   @IsOptional()
   @IsString()
   region?: string;
 
   @ApiPropertyOptional({ 
-    example: 2020, 
-    description: 'Filter by minimum year'
+    description: 'Filter by minimum year (e.g., 2020)'
   })
   @IsOptional()
   minYear?: number;
 
   @ApiPropertyOptional({ 
-    example: 2024, 
-    description: 'Filter by maximum year'
+    description: 'Filter by maximum year (e.g., 2024)'
   })
   @IsOptional()
   maxYear?: number;
 
   @ApiPropertyOptional({ 
-    example: 1000000, 
-    description: 'Filter by minimum listing price'
+    description: 'Filter by minimum listing price (e.g., 1000000)'
   })
   @IsOptional()
   minPrice?: number;
 
   @ApiPropertyOptional({ 
-    example: 10000000, 
-    description: 'Filter by maximum listing price'
+    description: 'Filter by maximum listing price (e.g., 10000000)'
   })
   @IsOptional()
   maxPrice?: number;
 
   @ApiPropertyOptional({ 
-    example: 'true', 
-    description: 'Filter by loan availability (true/false)'
+    description: 'Filter by loan availability (e.g., true or false)'
   })
   @IsOptional()
   @IsString()

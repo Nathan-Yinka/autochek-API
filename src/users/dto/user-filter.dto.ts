@@ -4,8 +4,7 @@ import { UserRole } from '../../common/enums/user-role.enum';
 
 export class UserFilterDto {
   @ApiPropertyOptional({
-    example: 'John',
-    description: 'Search by name or email (case-insensitive)',
+    description: 'Search by name or email (e.g., "John" or "john@example.com")',
   })
   @IsOptional()
   @IsString()
@@ -13,27 +12,21 @@ export class UserFilterDto {
 
   @ApiPropertyOptional({
     enum: [...Object.values(UserRole), 'all'],
-    example: UserRole.USER,
-    description: 'Filter by user role (default: USER). Use "all" to get all roles',
-    default: UserRole.USER,
+    description: 'Filter by user role (e.g., "admin", "user"). Use "all" to get all roles',
   })
   @IsOptional()
   @IsString()
   role?: string;
 
   @ApiPropertyOptional({
-    example: 1,
-    description: 'Page number',
-    default: 1,
+    description: 'Page number (e.g., 1, 2, 3...)',
   })
   @IsOptional()
   @IsString()
   page?: string;
 
   @ApiPropertyOptional({
-    example: 10,
-    description: 'Items per page',
-    default: 10,
+    description: 'Items per page (e.g., 10, 20, 50)',
   })
   @IsOptional()
   @IsString()
