@@ -7,7 +7,7 @@ export const VehicleWithImagesSchema: SchemaObject = {
     // REQUIRED FIELDS
     vin: { 
       type: 'string', 
-      example: '1HGCM82633A123456', 
+      example: '5FRYD4H66GB592800', 
       description: 'Vehicle Identification Number' 
     },
     make: { 

@@ -17,7 +17,7 @@ describe('VehiclesService', () => {
 
   const mockVehicle = {
     id: '1',
-    vin: '1HGCM82633A123456',
+    vin: '5FRYD4H66GB592800',
     make: 'Toyota',
     model: 'Camry',
     year: 2020,
@@ -118,7 +118,7 @@ describe('VehiclesService', () => {
   describe('create', () => {
     it('should create a new vehicle', async () => {
       const createVehicleDto: CreateVehicleDto = {
-        vin: '1HGCM82633A123456',
+        vin: '5FRYD4H66GB592800',
         make: 'Toyota',
         model: 'Camry',
         year: 2020,
@@ -148,7 +148,7 @@ describe('VehiclesService', () => {
 
     it('should throw ConflictException if VIN already exists', async () => {
       const createVehicleDto: CreateVehicleDto = {
-        vin: '1HGCM82633A123456',
+        vin: '5FRYD4H66GB592800',
         make: 'Toyota',
         model: 'Camry',
         year: 2020,

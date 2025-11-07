@@ -4,7 +4,7 @@ import { VehicleType, DriveType } from '../entities/vehicle.entity';
 import { Currency } from '../../common/enums/currency.enum';
 
 export class CreateVehicleDto {
-  @ApiProperty({ example: '1HGCM82633A123456', description: 'Vehicle Identification Number' })
+  @ApiProperty({ example: '5FRYD4H66GB592800', description: 'Vehicle Identification Number' })
   @IsString()
   vin: string;
 

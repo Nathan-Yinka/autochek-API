@@ -133,8 +133,8 @@ export class RapidAPIService {
    * Converts USD values to NGN (using approximate rate)
    */
   private transformResponse(data: RapidAPIVinResponse): ValuationResult {
-    // Conversion rate: 1 USD = ~500 NGN (approximate, could be configurable)
-    const usdToNgnRate = this.configService.get<number>('USD_TO_NGN_RATE') || 500;
+    // Conversion rate: 1 USD = ~1500 NGN (approximate, could be configurable)
+    const usdToNgnRate = this.configService.get<number>('USD_TO_NGN_RATE') || 1500;
 
     // Convert USD values to NGN
     const retailValue = Math.round(data.retail_value * usdToNgnRate);

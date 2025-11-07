@@ -54,7 +54,7 @@ async function seed() {
 
   console.log('🚗 Seeding vehicles...');
   const vehicle1 = vehicleRepo.create({
-    vin: '1HGCM82633A123456',
+    vin: '5FRYD4H66GB592800',
     make: 'Toyota',
     model: 'Camry',
     trim: 'LE',
@@ -81,7 +81,7 @@ async function seed() {
   });
 
   const vehicle2 = vehicleRepo.create({
-    vin: '2FMDK3GC3FBB12345',
+    vin: '5FRYD4H66GB592800',
     make: 'Honda',
     model: 'Accord',
     trim: 'Sport',
@@ -108,7 +108,7 @@ async function seed() {
   });
 
   const vehicle3 = vehicleRepo.create({
-    vin: '3VWFE21C04M000001',
+    vin: '5FRYD4H66GB592800',
     make: 'Ford',
     model: 'Explorer',
     trim: 'XLT',
