@@ -131,6 +131,106 @@
 			]
 		},
 		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get Users (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users?role=user&page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"],
+							"query": [
+								{
+									"key": "role",
+									"value": "user",
+									"description": "Filter by role: user | admin | all (default: user)"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search by name or email",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Items per page (default: 10, max: 100)"
+								}
+							]
+						},
+						"description": "Admin-only endpoint to fetch users with filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users?role=all",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"],
+							"query": [
+								{
+									"key": "role",
+									"value": "all"
+								}
+							]
+						},
+						"description": "Get all users regardless of role"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Users (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users?role=all&search=test",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"],
+							"query": [
+								{
+									"key": "role",
+									"value": "all"
+								},
+								{
+									"key": "search",
+									"value": "test"
+								}
+							]
+						},
+						"description": "Search users by name or email across all roles"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "profile"]
+						},
+						"description": "Get current user's profile"
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Vehicles",
 			"item": [
 				{

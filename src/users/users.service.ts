@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from '../auth/dto/register.dto';
+import { UserFilterDto } from './dto/user-filter.dto';
+import { UserRole } from '../common/enums/user-role.enum';
+import { PaginatedResponse } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class UsersService {
@@ -55,5 +58,70 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     return user;
+  }
+
+  /**
+   * Find users with filters (Admin only)
+   * Default: Only USER role
+   * Can filter by role or search by name/email
+   */
+  async findAllWithFilters(filterDto: UserFilterDto): Promise<PaginatedResponse<User>> {
+    const page = parseInt(filterDto.page || '1', 10);
+    const limit = parseInt(filterDto.limit || '10', 10);
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.usersRepository.createQueryBuilder('user');
+
+    // Role filter (default to USER)
+    const roleFilter = filterDto.role?.toLowerCase();
+    if (!roleFilter || roleFilter === UserRole.USER.toLowerCase()) {
+      queryBuilder.andWhere('user.role = :role', { role: UserRole.USER });
+    } else if (roleFilter === UserRole.ADMIN.toLowerCase()) {
+      queryBuilder.andWhere('user.role = :role', { role: UserRole.ADMIN });
+    } else if (roleFilter !== 'all') {
+      // If not 'all' and not a valid role, default to USER
+      queryBuilder.andWhere('user.role = :role', { role: UserRole.USER });
+    }
+    // If roleFilter === 'all', no role filter applied
+
+    // Search filter (name or email)
+    if (filterDto.search) {
+      queryBuilder.andWhere(
+        '(LOWER(user.firstName) LIKE :search OR LOWER(user.lastName) LIKE :search OR LOWER(user.email) LIKE :search)',
+        { search: `%${filterDto.search.toLowerCase()}%` },
+      );
+    }
+
+    // Select fields (exclude password)
+    queryBuilder.select([
+      'user.id',
+      'user.firstName',
+      'user.lastName',
+      'user.email',
+      'user.phone',
+      'user.role',
+      'user.createdAt',
+      'user.updatedAt',
+    ]);
+
+    // Pagination
+    queryBuilder.skip(skip).take(limit);
+
+    // Order by creation date (newest first)
+    queryBuilder.orderBy('user.createdAt', 'DESC');
+
+    const [users, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 }
