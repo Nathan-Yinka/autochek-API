@@ -10,6 +10,7 @@ import { Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../common/enums/user-role.enum';
+import { SocketEvent } from '../common/enums/socket-events.enum';
 
 @WebSocketGateway({
   cors: {
@@ -30,8 +31,8 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth.token || client.handshake.headers.authorization?.split(' ')[1];
-
+      const token = client.handshake.auth.token || client.handshake.headers.authorization;
+      
       if (!token) {
         throw new UnauthorizedException('No token provided');
       }
@@ -55,14 +56,14 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         this.logger.log(`User ${user.email} connected to socket ${client.id}`);
       }
 
-      client.emit('connected', {
+      client.emit(SocketEvent.CONNECTION, {
         message: 'Connected to notifications',
         userId: user.id,
         role: user.role,
       });
     } catch (error) {
       this.logger.error(`Connection failed: ${error.message}`);
-      client.emit('error', { message: 'Authentication failed' });
+      client.emit(SocketEvent.ERROR, { message: 'Authentication failed' });
       client.disconnect();
     }
   }
@@ -76,17 +77,17 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   sendNotificationToUser(userId: string, notification: any): void {
     const userRoom = `user:${userId}`;
-    this.server.to(userRoom).emit('notification', notification);
+    this.server.to(userRoom).emit(SocketEvent.NOTIFICATION, notification);
     this.logger.log(`Notification sent to all devices of user ${userId}`);
   }
 
   sendToAdmins(notification: any): void {
-    this.server.to('admins').emit('admin-notification', notification);
+    this.server.to('admins').emit(SocketEvent.NOTIFICATION, notification);
     this.logger.log('Notification sent to all admin devices');
   }
 
-  @SubscribeMessage('ping')
+  @SubscribeMessage(SocketEvent.PING)
   handlePing(client: Socket): void {
-    client.emit('pong', { timestamp: new Date().toISOString() });
+    client.emit(SocketEvent.PONG, { timestamp: new Date().toISOString() });
   }
 }

@@ -1,14 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
-
-export enum NotificationType {
-  LOAN_SUBMITTED = 'loan_submitted',
-  LOAN_APPROVED = 'loan_approved',
-  LOAN_REJECTED = 'loan_rejected',
-  OFFER_CREATED = 'offer_created',
-  OFFER_ACCEPTED = 'offer_accepted',
-  OFFER_DECLINED = 'offer_declined',
-  OFFER_EXPIRED = 'offer_expired',
-}
+import { NotificationType } from '../../common/enums/socket-events.enum';
 
 @Entity('notifications')
 export class Notification {
