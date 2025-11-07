@@ -8,6 +8,7 @@ import { LoanApplication, LoanApplicationStatus } from '../loans/entities/loan-a
 import { Offer, OfferStatus } from '../offers/entities/offer.entity';
 import { LoanPolicyService } from '../common/services/loan-policy.service';
 import { VehicleImageService } from './services/vehicle-image.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class VehiclesService {
@@ -22,6 +23,7 @@ export class VehiclesService {
     private offersRepository: Repository<Offer>,
     private loanPolicyService: LoanPolicyService,
     private vehicleImageService: VehicleImageService,
+    private configService: ConfigService,
   ) {}
 
   /**
@@ -321,13 +323,17 @@ export class VehiclesService {
       images: vehicle.vehicleImages
         ? vehicle.vehicleImages
             .sort((a, b) => a.displayOrder - b.displayOrder)
-            .map((img) => ({
-              id: img.id,
-              url: img.url,
-              isPrimary: img.isPrimary,
-              displayOrder: img.displayOrder,
-              caption: img.caption,
-            }))
+            .map((img) => {
+              const port = this.configService.get<number>('PORT') || 3000;
+              const baseUrl = `http://localhost:${port}`;
+              return {
+                id: img.id,
+                url: img.url.startsWith('http') ? img.url : `${baseUrl}${img.url}`,
+                isPrimary: img.isPrimary,
+                displayOrder: img.displayOrder,
+                caption: img.caption,
+              };
+            })
         : [],
     };
 
