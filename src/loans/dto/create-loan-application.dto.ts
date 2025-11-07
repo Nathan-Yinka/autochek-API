@@ -7,11 +7,11 @@ export class CreateLoanApplicationDto {
   @IsString()
   vehicleId: string;
 
-  @ApiProperty({ example: 'John Doe' })
+  @ApiProperty({ example: 'Test User' })
   @IsString()
   applicantName: string;
 
-  @ApiProperty({ example: 'john.doe@example.com' })
+  @ApiProperty({ example: 'tester@test.com' })
   @IsEmail()
   applicantEmail: string;
 

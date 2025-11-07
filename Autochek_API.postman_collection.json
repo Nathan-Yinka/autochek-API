@@ -1,0 +1,832 @@
+{
+	"info": {
+		"_postman_id": "autochek-api-collection",
+		"name": "Autochek API - Complete Collection",
+		"description": "Complete API collection for Autochek Vehicle Valuation & Financing Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{authToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"email\": \"newuser@test.com\",\n  \"password\": \"12345\",\n  \"phone\": \"+2348012345678\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login as Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.accessToken) {",
+									"        pm.environment.set('authToken', jsonData.data.accessToken);",
+									"        console.log('✅ Admin token saved');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"12345\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login as admin and automatically save token"
+					},
+					"response": []
+				},
+				{
+					"name": "Login as User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.accessToken) {",
+									"        pm.environment.set('authToken', jsonData.data.accessToken);",
+									"        console.log('✅ User token saved');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"tester@test.com\",\n  \"password\": \"12345\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login as user and automatically save token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Vehicles",
+			"item": [
+				{
+					"name": "List Vehicles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/vehicles?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["vehicles"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "make",
+									"value": "Honda",
+									"disabled": true
+								},
+								{
+									"key": "isLoanAvailable",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "minPrice",
+									"value": "2000000",
+									"disabled": true
+								},
+								{
+									"key": "maxPrice",
+									"value": "5000000",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List all vehicles with optional filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vehicle by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/vehicles/{{vehicleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["vehicles", "{{vehicleId}}"]
+						},
+						"description": "Get specific vehicle details"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Vehicle (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set('vehicleId', jsonData.data.id);",
+									"        console.log('✅ Vehicle ID saved:', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vin\": \"1HGCM82633A004352\",\n  \"make\": \"Honda\",\n  \"model\": \"Accord\",\n  \"year\": 2020,\n  \"mileage\": 50000,\n  \"vehicleType\": \"SEDAN\",\n  \"condition\": \"Excellent condition\",\n  \"listingPrice\": 5000000,\n  \"loanValue\": 2800000,\n  \"retailValue\": 4800000,\n  \"isLoanAvailable\": true,\n  \"minLoanValue\": 500000,\n  \"maxLoanPeriodMonths\": 72,\n  \"requiredDownPaymentPct\": 0.40,\n  \"currency\": \"NGN\",\n  \"region\": \"Lagos\",\n  \"status\": \"LISTED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/vehicles",
+							"host": ["{{baseUrl}}"],
+							"path": ["vehicles"]
+						},
+						"description": "Create a new vehicle (Admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Vehicle (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"listingPrice\": 4800000,\n  \"mileage\": 55000,\n  \"status\": \"LISTED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/vehicles/{{vehicleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["vehicles", "{{vehicleId}}"]
+						},
+						"description": "Update vehicle information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Vehicle (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/vehicles/{{vehicleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["vehicles", "{{vehicleId}}"]
+						},
+						"description": "Delete a vehicle (cannot delete with active loans/offers)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Valuations",
+			"item": [
+				{
+					"name": "Evaluate Vehicle by VIN",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vin\": \"1HGCM82633A123456\",\n  \"mileage\": 50000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/valuations/evaluate",
+							"host": ["{{baseUrl}}"],
+							"path": ["valuations", "evaluate"]
+						},
+						"description": "Evaluate vehicle and get suggested values (saves to history)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Valuations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/valuations",
+							"host": ["{{baseUrl}}"],
+							"path": ["valuations"]
+						},
+						"description": "Get all valuation records"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Valuation by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/valuations/{{valuationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["valuations", "{{valuationId}}"]
+						},
+						"description": "Get specific valuation details"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Valuation History by VIN",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/valuations/vin/1HGCM82633A123456",
+							"host": ["{{baseUrl}}"],
+							"path": ["valuations", "vin", "1HGCM82633A123456"]
+						},
+						"description": "Get all valuations for a specific VIN"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Valuation by ID (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/valuations/{{valuationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["valuations", "{{valuationId}}"]
+						},
+						"description": "Delete specific valuation"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete All Valuations by VIN (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/valuations/vin/1HGCM82633A123456",
+							"host": ["{{baseUrl}}"],
+							"path": ["valuations", "vin", "1HGCM82633A123456"]
+						},
+						"description": "Delete all valuations for a VIN"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Loan Applications",
+			"item": [
+				{
+					"name": "Submit Loan Application (Public/Guest)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set('loanId', jsonData.data.id);",
+									"        console.log('✅ Loan ID saved:', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"applicantName\": \"Guest User\",\n  \"applicantEmail\": \"guest@example.com\",\n  \"applicantPhone\": \"+2348012345678\",\n  \"bvn\": \"12345678901\",\n  \"nin\": \"12345678901234\",\n  \"dateOfBirth\": \"1990-01-15\",\n  \"residentialAddress\": \"123 Main Street, Lagos, Nigeria\",\n  \"requestedLoanAmount\": 2000000,\n  \"requestedTermMonths\": 48,\n  \"requestedDownPaymentPct\": 0.40\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/loans",
+							"host": ["{{baseUrl}}"],
+							"path": ["loans"]
+						},
+						"description": "Submit loan application (no authentication required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Loan Applications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loans",
+							"host": ["{{baseUrl}}"],
+							"path": ["loans"]
+						},
+						"description": "Get all loan applications for logged-in user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Unclaimed Applications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loans/unclaimed/mine",
+							"host": ["{{baseUrl}}"],
+							"path": ["loans", "unclaimed", "mine"]
+						},
+						"description": "Get guest applications matching user email (not yet claimed)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Loans (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loans/admin/all",
+							"host": ["{{baseUrl}}"],
+							"path": ["loans", "admin", "all"]
+						},
+						"description": "Get all loan applications (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loan by ID (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loans/{{loanId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["loans", "{{loanId}}"]
+						},
+						"description": "Get specific loan application (public - no auth required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Claim Guest Application",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loans/claim/{{loanId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["loans", "claim", "{{loanId}}"]
+						},
+						"description": "Claim a guest application to your account"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Loan Status (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"UNDER_REVIEW\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/loans/{{loanId}}/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["loans", "{{loanId}}", "status"]
+						},
+						"description": "Update loan application status (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Loan Application",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loans/{{loanId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["loans", "{{loanId}}"]
+						},
+						"description": "Delete loan application (user can delete own, admin can delete any)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Offers",
+			"item": [
+				{
+					"name": "Create Offer (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set('offerId', jsonData.data.id);",
+									"        console.log('✅ Offer ID saved:', jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"loanApplicationId\": \"{{loanId}}\",\n  \"offeredLoanAmount\": 2000000,\n  \"apr\": 0.15,\n  \"termMonths\": 48,\n  \"lenderCode\": \"BACKOFFICE\",\n  \"notes\": \"Approved after credit review\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/offers",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers"]
+						},
+						"description": "Create loan offer (admin only) - automatically calculates monthly payment and total interest"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Offers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/offers",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers"]
+						},
+						"description": "Get all offers for logged-in user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Offers (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/offers/admin/all",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "admin", "all"]
+						},
+						"description": "Get all offers across all users (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Offers for User (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/offers/user/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "user", "{{userId}}"]
+						},
+						"description": "Get all offers for a specific user (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Offer by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/offers/{{offerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "{{offerId}}"]
+						},
+						"description": "Get specific offer details"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Offers by Loan ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/offers/loan/{{loanId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "loan", "{{loanId}}"]
+						},
+						"description": "Get all offers for a specific loan application"
+					},
+					"response": []
+				},
+				{
+					"name": "Decline Offer with Reason",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Interest rate is too high for my budget\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/offers/{{offerId}}/decline",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "{{offerId}}", "decline"]
+						},
+						"description": "Decline offer with optional reason (user only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Offer Status (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/offers/{{offerId}}/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "{{offerId}}", "status"]
+						},
+						"description": "Update offer status manually (admin only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get My Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"]
+						},
+						"description": "Get all notifications for logged-in user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Unread Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications?read=false",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"],
+							"query": [
+								{
+									"key": "read",
+									"value": "false"
+								}
+							]
+						},
+						"description": "Get only unread notifications"
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Notification as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "{{notificationId}}", "read"]
+						},
+						"description": "Mark a specific notification as read"
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Multiple Notifications as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notificationIds\": [\n    \"notification-id-1\",\n    \"notification-id-2\",\n    \"notification-id-3\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/mark-read",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "mark-read"]
+						},
+						"description": "Mark multiple notifications as read in bulk"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						},
+						"description": "Check API health status"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "vehicleId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "loanId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "offerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "valuationId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "notificationId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

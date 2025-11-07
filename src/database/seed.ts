@@ -41,24 +41,15 @@ async function seed() {
   });
 
   const user1 = userRepo.create({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    password: userPassword,
+    firstName: 'Test',
+    lastName: 'User',
+    email: 'tester@test.com',
+    password: adminPassword,
     phone: '+2348012345678',
     role: UserRole.USER,
   });
 
-  const user2 = userRepo.create({
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane.smith@example.com',
-    password: userPassword,
-    phone: '+2348098765432',
-    role: UserRole.USER,
-  });
-
-  await userRepo.save([admin, user1, user2]);
+  await userRepo.save([admin, user1]);
   console.log('✅ Users seeded');
 
   console.log('🚗 Seeding vehicles...');
@@ -105,7 +96,7 @@ async function seed() {
     fuelType: 'petrol',
     condition: 'Very good condition',
     address: '12 Central Area, Abuja',
-    ownerId: user2.id,
+    ownerId: admin.id,
     listingPrice: 4800000,
     currency: Currency.NGN,
     requiredDownPaymentPct: 0.40,
@@ -212,8 +203,8 @@ async function seed() {
   const loan1 = loanRepo.create({
     userId: user1.id,
     vehicleId: vehicle1.id,
-    applicantName: 'John Doe',
-    applicantEmail: 'john.doe@example.com',
+    applicantName: 'Test User',
+    applicantEmail: 'tester@test.com',
     applicantPhone: '+2348012345678',
     bvn: '12345678901',
     nin: '12345678901234',
@@ -239,10 +230,10 @@ async function seed() {
   });
 
   const loan2 = loanRepo.create({
-    userId: user2.id,
+    userId: user1.id,
     vehicleId: vehicle2.id,
-    applicantName: 'Jane Smith',
-    applicantEmail: 'jane.smith@example.com',
+    applicantName: 'Test User',
+    applicantEmail: 'tester@test.com',
     applicantPhone: '+2348098765432',
     bvn: '98765432109',
     nin: '98765432109876',
@@ -295,14 +286,10 @@ async function seed() {
   console.log('  Email: admin@test.com');
   console.log('  Password: 12345');
   console.log('  Role: ADMIN');
-  console.log('\n👤 User 1:');
-  console.log('  Email: john.doe@example.com');
-  console.log('  Password: password123');
+  console.log('\n👤 User:');
+  console.log('  Email: tester@test.com');
+  console.log('  Password: 12345');
   console.log('  Role: USER');
-  console.log('\n👤 User 2:');
-  console.log('  Email: jane.smith@example.com');
-  console.log('  Password: password123');
-  console.log('  Role: USER\n');
 
   await dataSource.destroy();
 }
