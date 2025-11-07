@@ -13,7 +13,7 @@ export class LoanPolicyService {
    * Get Loan-to-Value cap (e.g., 1.10 = 110%)
    */
   getLtvCap(): number {
-    return this.configService.get<number>('LTV_CAP') || 1.10;
+    return this.configService.get<number>('DEFAULT_LTV_CAP') || 1.10;
   }
 
   /**

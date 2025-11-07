@@ -104,7 +104,24 @@ export class OffersController {
     return this.offersService.updateStatus(id, updateOfferStatusDto);
   }
 
-  @Patch(':id/decline')
+  @Patch(':id/accept')
+  @ApiEndpoint(
+    'Accept offer',
+    'Offer accepted successfully',
+    200,
+    [
+      { status: 404, description: 'Offer not found' },
+      { status: 400, description: 'Offer has expired or cannot be accepted' },
+    ],
+  )
+  async acceptOffer(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ): Promise<Offer> {
+    return this.offersService.acceptOffer(id, user.id);
+  }
+
+    @Patch(':id/decline')
   @ApiEndpoint(
     'Decline offer with optional reason',
     'Offer declined successfully',

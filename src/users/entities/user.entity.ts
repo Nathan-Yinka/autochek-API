@@ -43,9 +43,11 @@ export class User {
   @OneToMany(() => Offer, (o) => o.admin)
   offersAuthored: Offer[];
 
+  @Exclude()
   @CreateDateColumn()
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn()
   updatedAt: Date;
 }

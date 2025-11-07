@@ -215,6 +215,65 @@ export class OffersService {
   }
 
   /**
+   * Accept offer (user accepts the financing terms)
+   */
+  async acceptOffer(id: string, userId: string): Promise<Offer> {
+    return await this.offersRepository.manager.transaction(async (transactionalEntityManager) => {
+      const offer = await transactionalEntityManager
+        .createQueryBuilder('offer', 'offer')
+        .leftJoinAndSelect('offer.application', 'loan')
+        .where('offer.id = :id', { id })
+        .andWhere('loan.userId = :userId', { userId })
+        .getOne();
+
+      if (!offer) {
+        throw new NotFoundException('Offer not found');
+      }
+
+      // Check expiry
+      if (offer.status === OfferStatus.ISSUED && offer.expiresAt && new Date() > new Date(offer.expiresAt)) {
+        offer.status = OfferStatus.EXPIRED;
+        await transactionalEntityManager.save(offer);
+        throw new BadRequestException('This offer has expired');
+      }
+
+      if (offer.status !== OfferStatus.ISSUED) {
+        throw new BadRequestException(
+          `Cannot accept offer with status: ${offer.status}`,
+        );
+      }
+
+      // Update offer status to ACCEPTED
+      offer.status = OfferStatus.ACCEPTED;
+      const savedOffer = await transactionalEntityManager.save(offer);
+
+      // Update loan application status to APPROVED
+      await transactionalEntityManager
+        .createQueryBuilder()
+        .update('loan_applications')
+        .set({ status: LoanApplicationStatus.APPROVED })
+        .where('id = :id', { id: offer.loanApplicationId })
+        .execute();
+
+      // Notify admin that user accepted the offer
+      await this.notificationsService.notifyOfferAccepted(
+        offer.adminId || undefined,
+        offer.id,
+        offer.offeredLoanAmount,
+        userId,
+      );
+
+      // Reload offer with relations
+      const finalOffer = await transactionalEntityManager.findOne(Offer, {
+        where: { id: offer.id },
+        relations: ['application'],
+      });
+
+      return finalOffer!;
+    });
+  }
+
+  /**
    * Decline offer with reason (user can provide note)
    */
   async declineOffer(id: string, userId: string, declineNote?: string): Promise<Offer> {

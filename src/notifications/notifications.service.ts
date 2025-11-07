@@ -136,4 +136,50 @@ export class NotificationsService {
 
     this.notificationsGateway.sendToAdmins(notification);
   }
+
+  async notifyOfferAccepted(
+    adminId: string | undefined,
+    offerId: string,
+    amount: number,
+    userId: string,
+  ): Promise<void> {
+    // Notify admin if adminId is provided
+    if (adminId) {
+      await this.create(
+        adminId,
+        NotificationType.OFFER_ACCEPTED,
+        'Offer Accepted',
+        `A user has accepted an offer for $${amount.toLocaleString()}. Proceed with disbursement.`,
+        { offerId, amount, userId },
+      );
+    }
+
+    // Also notify all other admins
+    const adminUsers = await this.notificationsRepository.manager
+      .createQueryBuilder()
+      .select('user.id')
+      .from('users', 'user')
+      .where('user.role = :role', { role: 'admin' })
+      .andWhere('user.id != :adminId', { adminId: adminId || 'none' })
+      .getRawMany();
+
+    const notification = {
+      type: NotificationType.OFFER_ACCEPTED,
+      title: 'Offer Accepted',
+      message: `A user has accepted an offer for $${amount.toLocaleString()}. Review and process.`,
+      data: { offerId, amount, userId },
+    };
+
+    for (const admin of adminUsers) {
+      await this.create(
+        admin.user_id,
+        NotificationType.OFFER_ACCEPTED,
+        notification.title,
+        notification.message,
+        notification.data,
+      );
+    }
+
+    this.notificationsGateway.sendToAdmins(notification);
+  }
 }

@@ -28,12 +28,12 @@ That's it! The API will be available at http://localhost:3000
 **The container automatically:**
 - Installs dependencies
 - Runs migrations
-- Seeds sample data
+- Seeds sample data (safe - no duplicates on restart!)
 - Starts the application
 
 **Login Credentials:**
 - Admin: `admin@test.com` / `12345`
-- User: `john.doe@example.com` / `password123`
+- User: `tester@test.com` / `12345`
 
 **Stop the container:**
 ```bash
@@ -102,9 +102,11 @@ This creates all required database tables.
 npm run seed
 ```
 
+**Note:** The seed command is **safe to run multiple times** - it checks for existing data and skips duplicates!
+
 **Login Credentials:**
 - Admin: `admin@test.com` / `12345`
-- User: `john.doe@example.com` / `password123`
+- User: `tester@test.com` / `12345`
 
 ### 5. Start the Application
 
@@ -152,12 +154,12 @@ Click the environment dropdown (top right) → Select **"Autochek API - Environm
 
 **Step 3: Start Testing**
 
-The collection includes **37 endpoints** organized in 7 folders:
+The collection includes **38 endpoints** organized in 7 folders:
 - 📁 Authentication (3)
 - 📁 Vehicles (5)
 - 📁 Valuations (6)
 - 📁 Loan Applications (8)
-- 📁 Offers (8)
+- 📁 Offers (9)
 - 📁 Notifications (4)
 - 📁 Health Check (1)
 
@@ -187,8 +189,9 @@ The collection includes **37 endpoints** organized in 7 folders:
    
 8. **Authentication** → Click **"Login as User"** again
    
-9. **Offers** → Click **"Decline Offer with Reason"**
-   - Uses saved offerId automatically
+9. **Offers** → Click **"Accept Offer"** OR **"Decline Offer with Reason"**
+   - Accept: Updates offer to ACCEPTED, loan to APPROVED ✅
+   - Decline: Uses saved offerId automatically, admin gets reason
 
 **All IDs are chained automatically - no copy/paste needed!** 🎯
 
@@ -318,6 +321,7 @@ npm run migration:show
 - ✅ Guest loan applications (no login required)
 - ✅ Loan eligibility validation (LTV-based)
 - ✅ Admin offer creation with auto-calculations
+- ✅ User can accept/decline offers with notifications
 - ✅ Real-time notifications via WebSocket
 - ✅ Automatic offer expiry handling
 - ✅ Comprehensive API documentation
@@ -670,7 +674,11 @@ GET /api/v1/offers/<offer-id>
 ```
 See loan amount, APR, monthly payment, total interest.
 
-**Step 6A: Accept Offer** (Future - use admin status update for now)
+**Step 6A: Accept Offer**
+```
+PATCH /api/v1/offers/<offer-id>/accept
+```
+Offer status → ACCEPTED, Loan status → APPROVED, Admin notified!
 
 **Step 6B: Decline Offer with Reason**
 ```
@@ -830,7 +838,7 @@ After following the flows above, you should see:
 Two Postman files for complete API testing:
 
 1. **`Autochek_API.postman_collection.json`**
-   - 37 pre-configured API endpoints
+   - 38 pre-configured API endpoints
    - Organized in 7 logical folders
    - Automatic token management
    - Automatic ID chaining
@@ -881,6 +889,12 @@ Two Postman files for complete API testing:
 └── Create Offer (Admin) → Click Send
     ✅ Offer ID automatically saved!
     ℹ️ User gets real-time notification!
+
+📁 Offers
+└── Accept Offer (User) → Click Send
+    ✅ Offer status → ACCEPTED
+    ✅ Loan status → APPROVED
+    ℹ️ Admin gets real-time notification!
 ```
 
 **2. Test as User:**
@@ -1000,11 +1014,11 @@ The environment includes:
 
 ### Collection Statistics
 
-- **Total Endpoints**: 37
-- **Authentication Required**: 32
+- **Total Endpoints**: 38
+- **Authentication Required**: 33
 - **Public Endpoints**: 5
 - **Admin Only**: 12
-- **User Accessible**: 20
+- **User Accessible**: 21
 
 ---
 

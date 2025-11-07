@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../common/enums/user-role.enum';
@@ -10,50 +11,79 @@ import { LoanApplication, LoanApplicationStatus, EligibilityStatus } from '../lo
 import { Offer, OfferStatus } from '../offers/entities/offer.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 
+const logger = new Logger('SeedScript');
+
 async function seed() {
   const dataSource = new DataSource({
     type: 'better-sqlite3',
-    database: ':memory:',
+    database: process.env.DATABASE_PATH || 'autochek.db',
     entities: [User, Vehicle, VehicleImage, Valuation, LoanApplication, Offer, Notification],
-    synchronize: true,
+    synchronize: false, // Don't auto-sync, use migrations
   });
 
   await dataSource.initialize();
-  console.log('🗄️  Database initialized');
+  logger.log('Database initialized');
 
   const userRepo = dataSource.getRepository(User);
   const vehicleRepo = dataSource.getRepository(Vehicle);
   const valuationRepo = dataSource.getRepository(Valuation);
   const loanRepo = dataSource.getRepository(LoanApplication);
   const offerRepo = dataSource.getRepository(Offer);
+  const vehicleImageRepo = dataSource.getRepository(VehicleImage);
 
-  console.log('👤 Seeding users...');
-  const adminPassword = await bcrypt.hash('12345', 10);
-  const userPassword = await bcrypt.hash('password123', 10);
+  logger.log('Seeding users...');
+  
+  // Check if users already exist
+  let admin = await userRepo.findOne({ where: { email: 'admin@test.com' } });
+  let user1 = await userRepo.findOne({ where: { email: 'tester@test.com' } });
 
-  const admin = userRepo.create({
-    firstName: 'Admin',
-    lastName: 'User',
-    email: 'admin@test.com',
-    password: adminPassword,
-    phone: '+2348000000000',
-    role: UserRole.ADMIN,
-  });
+  if (!admin || !user1) {
+    const adminPassword = await bcrypt.hash('12345', 10);
 
-  const user1 = userRepo.create({
-    firstName: 'Test',
-    lastName: 'User',
-    email: 'tester@test.com',
-    password: adminPassword,
-    phone: '+2348012345678',
-    role: UserRole.USER,
-  });
+    if (!admin) {
+      admin = userRepo.create({
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin@test.com',
+        password: adminPassword,
+        phone: '+2348000000000',
+        role: UserRole.ADMIN,
+      });
+      await userRepo.save(admin);
+      logger.log('[OK] Admin user created');
+    }
 
-  await userRepo.save([admin, user1]);
-  console.log('✅ Users seeded');
+    if (!user1) {
+      user1 = userRepo.create({
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'tester@test.com',
+        password: adminPassword,
+        phone: '+2348012345678',
+        role: UserRole.USER,
+      });
+      await userRepo.save(user1);
+      logger.log('[OK] Test user created');
+    }
+  } else {
+    logger.log('[SKIP] Users already exist, skipping...');
+  }
 
-  console.log('🚗 Seeding vehicles...');
-  const vehicle1 = vehicleRepo.create({
+  logger.log('Seeding vehicles...');
+  
+  // Check if vehicles already exist
+  const vehicleCount = await vehicleRepo.count();
+  let vehicle1, vehicle2, vehicle3;
+
+  if (vehicleCount >= 3) {
+    // Load existing vehicles
+    const vehicles = await vehicleRepo.find({ take: 3, order: { createdAt: 'ASC' } });
+    vehicle1 = vehicles[0];
+    vehicle2 = vehicles[1];
+    vehicle3 = vehicles[2];
+    logger.log('[SKIP] Vehicles already exist, skipping...');
+  } else if (vehicleCount === 0) {
+    vehicle1 = vehicleRepo.create({
     vin: '5FRYD4H66GB592800',
     make: 'Toyota',
     model: 'Camry',
@@ -71,6 +101,8 @@ async function seed() {
     address: '45 Victoria Island, Lagos',
     ownerId: user1.id,
     listingPrice: 5500000,
+    loanValue: 5200000,
+    retailValue: 5500000,
     currency: Currency.NGN,
     requiredDownPaymentPct: 0.30,
     region: 'Lagos',
@@ -80,8 +112,8 @@ async function seed() {
     maxLoanPeriodMonths: 60,
   });
 
-  const vehicle2 = vehicleRepo.create({
-    vin: '5FRYD4H66GB592800',
+  vehicle2 = vehicleRepo.create({
+    vin: '1HGCV1F30JA012345',
     make: 'Honda',
     model: 'Accord',
     trim: 'Sport',
@@ -98,6 +130,8 @@ async function seed() {
     address: '12 Central Area, Abuja',
     ownerId: admin.id,
     listingPrice: 4800000,
+    loanValue: 4500000,
+    retailValue: 4800000,
     currency: Currency.NGN,
     requiredDownPaymentPct: 0.40,
     region: 'Abuja',
@@ -107,8 +141,8 @@ async function seed() {
     maxLoanPeriodMonths: 48,
   });
 
-  const vehicle3 = vehicleRepo.create({
-    vin: '5FRYD4H66GB592800',
+  vehicle3 = vehicleRepo.create({
+    vin: '1FM5K8D82LGB12345',
     make: 'Ford',
     model: 'Explorer',
     trim: 'XLT',
@@ -125,6 +159,8 @@ async function seed() {
     address: '89 Lekki Phase 1, Lagos',
     ownerId: user1.id,
     listingPrice: 7200000,
+    loanValue: 6800000,
+    retailValue: 7200000,
     currency: Currency.NGN,
     requiredDownPaymentPct: 0.35,
     region: 'Lagos',
@@ -134,14 +170,26 @@ async function seed() {
     maxLoanPeriodMonths: 72,
   });
 
-  await vehicleRepo.save([vehicle1, vehicle2, vehicle3]);
-  console.log('✅ Vehicles seeded');
+    const savedVehicles = await vehicleRepo.save([vehicle1, vehicle2, vehicle3]);
+    vehicle1 = savedVehicles[0];
+    vehicle2 = savedVehicles[1];
+    vehicle3 = savedVehicles[2];
+    logger.log('[OK] Vehicles seeded');
+  } else {
+    logger.log('[WARN] Found ' + vehicleCount + ' vehicles, expected 0 or 3+. Skipping...');
+    const vehicles = await vehicleRepo.find({ take: 3, order: { createdAt: 'ASC' } });
+    vehicle1 = vehicles[0] || null;
+    vehicle2 = vehicles[1] || null;
+    vehicle3 = vehicles[2] || null;
+  }
 
   // Seed vehicle images
-  console.log('📸 Seeding vehicle images...');
-  const vehicleImageRepo = dataSource.getRepository(VehicleImage);
-
-  const allImages = [
+  logger.log('Seeding vehicle images...');
+  
+  const imageCount = await vehicleImageRepo.count();
+  
+  if (imageCount === 0) {
+    const allImages = [
     ...['toyota-camry-1.jpg', 'toyota-camry-2.jpg', 'toyota-camry-3.jpg'].map((name, idx) => ({
       vehicleId: vehicle1.id,
       url: `/uploads/vehicles/${name}`,
@@ -165,11 +213,18 @@ async function seed() {
     })),
   ];
 
-  await vehicleImageRepo.save(allImages.map(img => vehicleImageRepo.create(img)));
-  console.log('✅ Vehicle images seeded');
+    await vehicleImageRepo.save(allImages.map(img => vehicleImageRepo.create(img)));
+    logger.log('[OK] Vehicle images seeded');
+  } else {
+    logger.log('[SKIP] Vehicle images already exist, skipping...');
+  }
 
-  console.log('💰 Seeding valuations...');
-  const valuation1 = valuationRepo.create({
+  logger.log('Seeding valuations...');
+  
+  const valuationCount = await valuationRepo.count();
+  
+  if (valuationCount === 0) {
+    const valuation1 = valuationRepo.create({
     vehicleId: vehicle1.id,
     retailValue: 5500000,
     loanValue: 5200000,
@@ -196,11 +251,18 @@ async function seed() {
     providerRef: 'sim-003',
   });
 
-  await valuationRepo.save([valuation1, valuation2, valuation3]);
-  console.log('✅ Valuations seeded');
+    await valuationRepo.save([valuation1, valuation2, valuation3]);
+    logger.log('[OK] Valuations seeded');
+  } else {
+    logger.log('[SKIP] Valuations already exist, skipping...');
+  }
 
-  console.log('📋 Seeding loan applications...');
-  const loan1 = loanRepo.create({
+  logger.log('Seeding loan applications...');
+  
+  const loanCount = await loanRepo.count();
+  
+  if (loanCount === 0) {
+    const loan1 = loanRepo.create({
     userId: user1.id,
     vehicleId: vehicle1.id,
     applicantName: 'Test User',
@@ -258,11 +320,15 @@ async function seed() {
     status: LoanApplicationStatus.PENDING_OFFER,
   });
 
-  await loanRepo.save([loan1, loan2]);
-  console.log('✅ Loan applications seeded');
+    await loanRepo.save([loan1, loan2]);
+    logger.log('[OK] Loan applications seeded');
 
-  console.log('🎁 Seeding offers...');
-  const offer1 = offerRepo.create({
+    logger.log('Seeding offers...');
+    
+    const offerCount = await offerRepo.count();
+    
+    if (offerCount === 0) {
+      const offer1 = offerRepo.create({
     loanApplicationId: loan1.id,
     adminId: admin.id,
     lenderCode: 'BACKOFFICE',
@@ -277,29 +343,35 @@ async function seed() {
     notes: 'Standard offer for approved application',
   });
 
-  await offerRepo.save([offer1]);
-  console.log('✅ Offers seeded');
+      await offerRepo.save([offer1]);
+      logger.log('[OK] Offers seeded');
+    } else {
+      logger.log('[SKIP] Offers already exist, skipping...');
+    }
+  } else {
+    logger.log('[SKIP] Loan applications already exist, skipping...');
+  }
 
-  console.log('\n✨ Seeding completed successfully!\n');
-  console.log('Sample credentials:');
-  console.log('\n🔑 Admin:');
-  console.log('  Email: admin@test.com');
-  console.log('  Password: 12345');
-  console.log('  Role: ADMIN');
-  console.log('\n👤 User:');
-  console.log('  Email: tester@test.com');
-  console.log('  Password: 12345');
-  console.log('  Role: USER');
+  logger.log('\nSeeding completed successfully!\n');
+  logger.log('Sample credentials:');
+  logger.log('\nAdmin:');
+  logger.log('  Email: admin@test.com');
+  logger.log('  Password: 12345');
+  logger.log('  Role: ADMIN');
+  logger.log('\nUser:');
+  logger.log('  Email: tester@test.com');
+  logger.log('  Password: 12345');
+  logger.log('  Role: USER');
 
   await dataSource.destroy();
 }
 
 seed()
   .then(() => {
-    console.log('Seed data created successfully');
+    logger.log('Seed data created successfully');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('Error seeding data:', error);
+    logger.error('Error seeding data', error.stack || error.message || error);
     process.exit(1);
   });
