@@ -1,4 +1,5 @@
 import { IsString, IsInt, IsNumber, Min, Max, IsOptional, IsBoolean, IsEnum, IsArray, ValidateIf } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { VehicleType, DriveType } from '../entities/vehicle.entity';
 import { Currency } from '../../common/enums/currency.enum';
@@ -17,12 +18,14 @@ export class CreateVehicleDto {
   model: string;
 
   @ApiProperty({ example: 2020, description: 'Manufacturing year' })
+  @Type(() => Number)
   @IsInt()
   @Min(1900)
   @Max(2030)
   year: number;
 
   @ApiProperty({ example: 25000, description: 'Current mileage' })
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   mileage: number;
@@ -88,6 +91,7 @@ export class CreateVehicleDto {
   // Pricing
   @ApiPropertyOptional({ example: 5000000, description: 'Asking price in NGN' })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   listingPrice?: number;
@@ -104,6 +108,7 @@ export class CreateVehicleDto {
 
   @ApiPropertyOptional({ example: 0.40, description: 'Required down payment percentage (0.40 = 40%)', default: 0.40 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   @Max(1)
@@ -112,6 +117,7 @@ export class CreateVehicleDto {
   // Valuation (can be auto-filled from evaluate endpoint)
   @ApiPropertyOptional({ example: 5000000, description: 'Retail market value' })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   retailValue?: number;
 
@@ -120,12 +126,18 @@ export class CreateVehicleDto {
     description: 'Loan value (REQUIRED if isLoanAvailable=true)' 
   })
   @ValidateIf(o => o.isLoanAvailable === true)
+  @Type(() => Number)
   @IsNumber()
   loanValue?: number;
 
   // Loan Configuration
   @ApiPropertyOptional({ example: true, description: 'Whether loan financing is available for this vehicle', default: true })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true) return true;
+    if (value === 'false' || value === false) return false;
+    return value;
+  })
   @IsBoolean()
   isLoanAvailable?: boolean;
 
@@ -134,6 +146,7 @@ export class CreateVehicleDto {
     description: 'Minimum loan amount (REQUIRED if isLoanAvailable=true)' 
   })
   @ValidateIf(o => o.isLoanAvailable === true)
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   minLoanValue?: number;
@@ -143,6 +156,7 @@ export class CreateVehicleDto {
     description: 'Maximum loan period in months (REQUIRED if isLoanAvailable=true)' 
   })
   @ValidateIf(o => o.isLoanAvailable === true)
+  @Type(() => Number)
   @IsInt()
   @Min(12)
   @Max(120)
