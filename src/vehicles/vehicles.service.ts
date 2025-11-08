@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vehicle, VehicleStatus } from './entities/vehicle.entity';
@@ -194,8 +194,11 @@ export class VehiclesService {
   async updateVehicle(
     id: string,
     updateVehicleDto: UpdateVehicleDto,
+    userId: string,
+    userRole: string,
     newImageFiles?: Express.Multer.File[],
   ): Promise<any> {
+    await this.checkOwnership(id, userId, userRole);
     const vehicle = await this.findOne(id);
     await this.checkIfVehicleCanBeModified(id);
 
@@ -218,7 +221,8 @@ export class VehiclesService {
   /**
    * Delete vehicle (business logic moved from controller)
    */
-  async deleteVehicle(id: string): Promise<void> {
+  async deleteVehicle(id: string, userId: string, userRole: string): Promise<void> {
+    await this.checkOwnership(id, userId, userRole);
     const vehicle = await this.findOne(id);
     await this.checkIfVehicleCanBeModified(id);
 
@@ -232,7 +236,8 @@ export class VehiclesService {
   /**
    * Add images to existing vehicle
    */
-  async addImagesToVehicle(id: string, imageFiles: Express.Multer.File[]): Promise<any> {
+  async addImagesToVehicle(id: string, userId: string, userRole: string, imageFiles: Express.Multer.File[]): Promise<any> {
+    await this.checkOwnership(id, userId, userRole);
     const vehicle = await this.findOne(id);
     await this.checkIfVehicleCanBeModified(id);
 
@@ -278,6 +283,31 @@ export class VehiclesService {
 
     const updatedVehicle = await this.findOne(vehicleId);
     return this.enhanceVehicleWithPaymentEstimate(updatedVehicle);
+  }
+
+
+  /**
+   * Check if user can modify vehicle (owner or admin)
+   */
+  private async checkOwnership(vehicleId: string, userId: string, userRole: string): Promise<void> {
+    const vehicle = await this.vehiclesRepository.findOne({
+      where: { id: vehicleId },
+      select: ['id', 'ownerId'],
+    });
+
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+
+    // Admins can modify any vehicle
+    if (userRole === 'admin') {
+      return;
+    }
+
+    // Users can only modify their own vehicles
+    if (vehicle.ownerId !== userId) {
+      throw new ForbiddenException('You can only modify your own vehicles');
+    }
   }
 
   /**

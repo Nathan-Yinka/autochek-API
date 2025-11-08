@@ -64,10 +64,10 @@ export class VehiclesController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @UseInterceptors(FilesInterceptor('images', 10, imageUploadConfig))
   @ApiConsumes('multipart/form-data')
-  @ApiEndpoint('Create vehicle with images', 'Vehicle created successfully', 201, [
+  @ApiEndpoint('Create vehicle (Admin or User)', 'Vehicle created successfully', 201, [
     { status: 409, description: 'Vehicle with this VIN already exists' },
   ])
   @ApiBody({ schema: VehicleWithImagesSchema })
@@ -152,7 +152,7 @@ export class VehiclesController {
     @CurrentUser() user: User,
   ): Promise<any> {
     // Service handles authorization check
-    return this.vehiclesService.updateVehicle(id, updateVehicleDto, files);
+    return this.vehiclesService.updateVehicle(id, updateVehicleDto, user.id, user.role, files);
   }
 
   @Post(':id/images')
@@ -160,6 +160,21 @@ export class VehiclesController {
   @Roles(UserRole.ADMIN, UserRole.USER)
   @UseInterceptors(FilesInterceptor('images', 10, imageUploadConfig))
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        images: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+          description: 'Upload vehicle images (max 10 files, 5MB each, jpg/jpeg/png/gif/webp)',
+        },
+      },
+    },
+  })
   @ApiEndpoint('Add images to existing vehicle', 'Images added successfully', 200, [
     { status: 404, description: 'Vehicle not found' },
     { status: 403, description: 'Not authorized' },
@@ -167,8 +182,9 @@ export class VehiclesController {
   async addImages(
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFiles() files: Express.Multer.File[],
+    @CurrentUser() user: User,
   ): Promise<any> {
-    return this.vehiclesService.addImagesToVehicle(id, files);
+    return this.vehiclesService.addImagesToVehicle(id, user.id, user.role, files);
   }
 
   @Delete(':id/images/:imageId')
@@ -222,8 +238,11 @@ export class VehiclesController {
     { status: 403, description: 'Not authorized' },
     { status: 400, description: 'Cannot delete vehicle with active loans/offers' },
   ])
-  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
-    await this.vehiclesService.deleteVehicle(id);
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ): Promise<{ message: string }> {
+    await this.vehiclesService.deleteVehicle(id, user.id, user.role);
     return { message: 'Vehicle deleted successfully' };
   }
 }

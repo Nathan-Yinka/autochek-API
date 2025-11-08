@@ -1024,4 +1024,9 @@ The environment includes:
 
 ## License
 
-UNLICENSED - Private Project
+UNLICENSED 
+ - Oludare Nathaniel Adeyinka
+ - 08162368347
+ - oludarenathaniel@gmail.com
+
+
