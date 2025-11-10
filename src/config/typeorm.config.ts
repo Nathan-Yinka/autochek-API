@@ -1,22 +1,16 @@
-import { DataSource, DataSourceOptions } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
-import { config } from 'dotenv';
+import { DataSource } from 'typeorm';
+import { User } from '../users/entities/user.entity';
+import { Vehicle } from '../vehicles/entities/vehicle.entity';
+import { VehicleImage } from '../vehicles/entities/vehicle-image.entity';
+import { Valuation } from '../valuations/entities/valuation.entity';
+import { LoanApplication } from '../loans/entities/loan-application.entity';
+import { Offer } from '../offers/entities/offer.entity';
+import { Notification } from '../notifications/entities/notification.entity';
 
-// Load environment variables
-config();
-
-const configService = new ConfigService();
-
-export const dataSourceOptions: DataSourceOptions = {
+export default new DataSource({
   type: 'better-sqlite3',
-  database: configService.get('DATABASE_PATH') || 'autochek.db',
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/database/migrations/*.js'],
-  synchronize: false, // Disable auto-sync when using migrations
-  logging: configService.get('NODE_ENV') === 'development',
-};
-
-const dataSource = new DataSource(dataSourceOptions);
-
-export default dataSource;
-
+  database: process.env.DATABASE_PATH || 'autochek.db',
+  entities: [User, Vehicle, VehicleImage, Valuation, LoanApplication, Offer, Notification],
+  migrations: ['src/database/migrations/*.ts'],
+  synchronize: false,
+});

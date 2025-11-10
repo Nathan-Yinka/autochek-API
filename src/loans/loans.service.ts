@@ -57,11 +57,8 @@ export class LoansService {
       // LTV Cap - could come from config or vehicle category
       const ltvCap = 1.10;
 
-      // Calculate down payment
-      const plannedDownAmount = createLoanApplicationDto.requestedDownPaymentAmount || 
-        (createLoanApplicationDto.requestedDownPaymentPct 
-          ? listingPrice * createLoanApplicationDto.requestedDownPaymentPct 
-          : listingPrice * vehicleRequiredDownPct);
+      // Calculate down payment from percentage
+      const plannedDownAmount = listingPrice * createLoanApplicationDto.requestedDownPaymentPct;
 
       // initialNeeded = listingPrice - plannedDownAmount
       const initialNeeded = listingPrice - plannedDownAmount;
@@ -101,22 +98,11 @@ export class LoansService {
         snapshotRetailValue: vehicleLoanValue,
         snapshotLoanValue: vehicleLoanValue,
         valuationFetchedAt: new Date(),
-        requestedLoanAmount: createLoanApplicationDto.requestedLoanAmount,
         requestedDownPaymentPct: createLoanApplicationDto.requestedDownPaymentPct,
-        requestedDownPaymentAmount: plannedDownAmount,
         requestedTermMonths: createLoanApplicationDto.requestedTermMonths,
-        requestedApr: createLoanApplicationDto.requestedApr,
-        desiredLoanCurrency: createLoanApplicationDto.desiredLoanCurrency || Currency.NGN,
         desiredMonthlyPayment: createLoanApplicationDto.desiredMonthlyPayment,
         desiredInterestRate: createLoanApplicationDto.desiredInterestRate,
-        desiredEquityContribution: createLoanApplicationDto.desiredEquityContribution,
-        interestRateType: createLoanApplicationDto.interestRateType,
-        desiredResidualBalloonPct: createLoanApplicationDto.desiredResidualBalloonPct,
-        desiredRepaymentDate: createLoanApplicationDto.desiredRepaymentDate,
-        subscribeRoadworthiness: createLoanApplicationDto.subscribeRoadworthiness || false,
-        subscribeLicenseRenewal: createLoanApplicationDto.subscribeLicenseRenewal || false,
-        feePaymentPreference: createLoanApplicationDto.feePaymentPreference,
-        upfrontPaymentItems: createLoanApplicationDto.upfrontPaymentItems,
+        currency: Currency.NGN,
         ltvCap,
         plannedDownAmount,
         initialNeeded,
@@ -145,14 +131,14 @@ export class LoansService {
           await this.notificationsService.notifyLoanSubmitted(
             userId,
             savedLoan.id,
-            createLoanApplicationDto.requestedLoanAmount,
+            validatedLoanAmount,
           );
         }
 
         await this.notificationsService.notifyAdminNewLoan(
           savedLoan.id,
           loan.applicantName,
-          createLoanApplicationDto.requestedLoanAmount,
+          validatedLoanAmount,
         );
       }
 

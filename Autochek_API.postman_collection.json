@@ -10,7 +10,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "{{authToken}}",
+				"value": "{{access_token}}",
 				"type": "string"
 			}
 		]
@@ -51,8 +51,8 @@
 								"exec": [
 									"if (pm.response.code === 200 || pm.response.code === 201) {",
 									"    var jsonData = pm.response.json();",
-									"    if (jsonData.data && jsonData.data.accessToken) {",
-									"        pm.environment.set('authToken', jsonData.data.accessToken);",
+									"    if (jsonData.data && jsonData.data.access_token) {",
+									"        pm.environment.set('access_token', jsonData.data.access_token);",
 									"        console.log('✅ Admin token saved');",
 									"    }",
 									"}"
@@ -94,8 +94,8 @@
 								"exec": [
 									"if (pm.response.code === 200 || pm.response.code === 201) {",
 									"    var jsonData = pm.response.json();",
-									"    if (jsonData.data && jsonData.data.accessToken) {",
-									"        pm.environment.set('authToken', jsonData.data.accessToken);",
+									"    if (jsonData.data && jsonData.data.access_token) {",
+									"        pm.environment.set('access_token', jsonData.data.access_token);",
 									"        console.log('✅ User token saved');",
 									"    }",
 									"}"
@@ -136,6 +136,16 @@
 				{
 					"name": "Get Users (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -173,6 +183,16 @@
 				{
 					"name": "Get All Users (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -193,6 +213,16 @@
 				{
 					"name": "Search Users (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -217,6 +247,16 @@
 				{
 					"name": "Get Profile",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -236,6 +276,16 @@
 				{
 					"name": "List Vehicles",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -280,6 +330,16 @@
 				{
 					"name": "Get Vehicle by ID",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -311,6 +371,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -334,6 +404,16 @@
 				{
 					"name": "Update Vehicle (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PATCH",
 						"header": [
 							{
@@ -357,6 +437,16 @@
 				{
 					"name": "Delete Vehicle (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
 						"header": [],
 						"url": {
@@ -376,6 +466,16 @@
 				{
 					"name": "Evaluate Vehicle by VIN",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -399,6 +499,16 @@
 				{
 					"name": "Get All Valuations",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -413,6 +523,16 @@
 				{
 					"name": "Get Valuation by ID",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -427,6 +547,16 @@
 				{
 					"name": "Get Valuation History by VIN",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -441,6 +571,16 @@
 				{
 					"name": "Delete Valuation by ID (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
 						"header": [],
 						"url": {
@@ -455,6 +595,16 @@
 				{
 					"name": "Delete All Valuations by VIN (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
 						"header": [],
 						"url": {
@@ -503,20 +653,30 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"applicantName\": \"Guest User\",\n  \"applicantEmail\": \"guest@example.com\",\n  \"applicantPhone\": \"+2348012345678\",\n  \"bvn\": \"12345678901\",\n  \"nin\": \"12345678901234\",\n  \"dateOfBirth\": \"1990-01-15\",\n  \"residentialAddress\": \"123 Main Street, Lagos, Nigeria\",\n  \"requestedLoanAmount\": 2000000,\n  \"requestedTermMonths\": 48,\n  \"requestedDownPaymentPct\": 0.40\n}"
+							"raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"applicantName\": \"Guest User\",\n  \"applicantEmail\": \"guest@example.com\",\n  \"applicantPhone\": \"+2348012345678\",\n  \"bvn\": \"12345678901\",\n  \"dateOfBirth\": \"1990-01-15\",\n  \"residentialAddress\": \"123 Main Street, Lagos, Nigeria\",\n  \"requestedDownPaymentPct\": 0.40,\n  \"requestedTermMonths\": 48,\n  \"desiredMonthlyPayment\": 125000,\n  \"desiredInterestRate\": 0.18\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/loans",
 							"host": ["{{baseUrl}}"],
 							"path": ["loans"]
 						},
-						"description": "Submit loan application (no authentication required)"
+						"description": "Submit loan application (no authentication required). Loan amount is calculated automatically from vehicle price and down payment. REQUIRED: desiredMonthlyPayment (what you can afford monthly) and desiredInterestRate (what rate you hope for) - these help admins create appropriate offers."
 					},
 					"response": []
 				},
 				{
 					"name": "Get My Loan Applications",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -531,6 +691,16 @@
 				{
 					"name": "Get Unclaimed Applications",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -545,6 +715,16 @@
 				{
 					"name": "Get All Loans (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -576,6 +756,16 @@
 				{
 					"name": "Claim Guest Application",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"url": {
@@ -590,6 +780,16 @@
 				{
 					"name": "Update Loan Status (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PATCH",
 						"header": [
 							{
@@ -613,6 +813,16 @@
 				{
 					"name": "Delete Loan Application",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
 						"header": [],
 						"url": {
@@ -649,6 +859,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -672,6 +892,16 @@
 				{
 					"name": "Get My Offers",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -686,6 +916,16 @@
 				{
 					"name": "Get All Offers (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -700,6 +940,16 @@
 				{
 					"name": "Get Offers for User (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -714,6 +964,16 @@
 				{
 					"name": "Get Offer by ID",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -728,6 +988,16 @@
 				{
 					"name": "Get Offers by Loan ID",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -742,6 +1012,16 @@
 				{
 					"name": "Decline Offer with Reason",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PATCH",
 						"header": [
 							{
@@ -765,6 +1045,16 @@
 				{
 					"name": "Update Offer Status (Admin)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PATCH",
 						"header": [
 							{
@@ -793,6 +1083,16 @@
 				{
 					"name": "Get My Notifications",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -807,6 +1107,16 @@
 				{
 					"name": "Get Unread Notifications",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -827,6 +1137,16 @@
 				{
 					"name": "Mark Notification as Read",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PATCH",
 						"header": [],
 						"url": {
@@ -841,6 +1161,16 @@
 				{
 					"name": "Mark Multiple Notifications as Read",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PATCH",
 						"header": [
 							{
@@ -893,7 +1223,7 @@
 			"type": "string"
 		},
 		{
-			"key": "authToken",
+			"key": "access_token",
 			"value": "",
 			"type": "string"
 		},

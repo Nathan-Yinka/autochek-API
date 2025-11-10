@@ -89,12 +89,11 @@ export class CreateVehicleDto {
   region?: string;
 
   // Pricing
-  @ApiPropertyOptional({ example: 5000000, description: 'Asking price in NGN' })
-  @IsOptional()
+  @ApiProperty({ example: 5000000, description: 'Asking price in NGN (REQUIRED)' })
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  listingPrice?: number;
+  listingPrice: number;
 
   @ApiPropertyOptional({ 
     example: Currency.NGN, 
@@ -106,8 +105,12 @@ export class CreateVehicleDto {
   @IsEnum(Currency, { message: 'Only NGN currency is supported at this time' })
   currency?: Currency;
 
-  @ApiPropertyOptional({ example: 0.40, description: 'Required down payment percentage (0.40 = 40%)', default: 0.40 })
-  @IsOptional()
+  @ApiProperty({ 
+    example: 0.40, 
+    description: 'Required down payment percentage (0.40 = 40%) - REQUIRED if isLoanAvailable=true', 
+    default: 0.40 
+  })
+  @ValidateIf(o => o.isLoanAvailable === true)
   @Type(() => Number)
   @IsNumber()
   @Min(0)
@@ -115,15 +118,18 @@ export class CreateVehicleDto {
   requiredDownPaymentPct?: number;
 
   // Valuation (can be auto-filled from evaluate endpoint)
-  @ApiPropertyOptional({ example: 5000000, description: 'Retail market value' })
-  @IsOptional()
+  @ApiProperty({ 
+    example: 5000000, 
+    description: 'Retail market value (REQUIRED if isLoanAvailable=true)' 
+  })
+  @ValidateIf(o => o.isLoanAvailable === true)
   @Type(() => Number)
   @IsNumber()
   retailValue?: number;
 
-  @ApiPropertyOptional({ 
+  @ApiProperty({ 
     example: 4750000, 
-    description: 'Loan value (REQUIRED if isLoanAvailable=true)' 
+    description: 'Loan value - value lenders will finance against (REQUIRED if isLoanAvailable=true)' 
   })
   @ValidateIf(o => o.isLoanAvailable === true)
   @Type(() => Number)

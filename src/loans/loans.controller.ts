@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Body, Param, Patch, UseGuards, ParseUUIDPipe, Delete, HttpCode } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiResponse } from '@nestjs/swagger';
 import { LoansService } from './loans.service';
 import { CreateLoanApplicationDto } from './dto/create-loan-application.dto';
 import { UpdateLoanStatusDto } from './dto/update-loan-status.dto';
-import { LoanApplication } from './entities/loan-application.entity';
+import { LoanApplicationResponseDto } from './dto/loan-application-response.dto';
+import { LoanApplicationMapper } from './mappers/loan-application.mapper';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -25,20 +26,32 @@ export class LoansController {
     201,
     [{ status: 400, description: 'Bad request' }],
   )
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Loan application submitted successfully',
+    type: LoanApplicationResponseDto 
+  })
   async create(
     @CurrentUser() user: User | undefined,
     @Body() createLoanApplicationDto: CreateLoanApplicationDto,
-  ): Promise<LoanApplication> {
+  ): Promise<LoanApplicationResponseDto> {
     const userId = user?.id || null;
     const isGuest = !user;
-    return this.loansService.create(userId, createLoanApplicationDto, isGuest);
+    const loanApplication = await this.loansService.create(userId, createLoanApplicationDto, isGuest);
+    return LoanApplicationMapper.toResponseDto(loanApplication);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiEndpoint('Get user loan applications', 'Loan applications retrieved successfully')
-  async findAll(@CurrentUser() user: User): Promise<LoanApplication[]> {
-    return this.loansService.getUserLoans(user.id);
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Loan applications retrieved successfully',
+    type: [LoanApplicationResponseDto]
+  })
+  async findAll(@CurrentUser() user: User): Promise<LoanApplicationResponseDto[]> {
+    const loanApplications = await this.loansService.getUserLoans(user.id);
+    return LoanApplicationMapper.toResponseDtoArray(loanApplications);
   }
 
   @Get('unclaimed/mine')
@@ -48,8 +61,14 @@ export class LoansController {
     'Unclaimed applications retrieved successfully',
     200,
   )
-  async findUnclaimed(@CurrentUser() user: User): Promise<LoanApplication[]> {
-    return this.loansService.getUnclaimedApplicationsByEmail(user.email);
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Unclaimed applications retrieved successfully',
+    type: [LoanApplicationResponseDto]
+  })
+  async findUnclaimed(@CurrentUser() user: User): Promise<LoanApplicationResponseDto[]> {
+    const loanApplications = await this.loansService.getUnclaimedApplicationsByEmail(user.email);
+    return LoanApplicationMapper.toResponseDtoArray(loanApplications);
   }
 
   @Get('admin/all')
@@ -61,8 +80,14 @@ export class LoansController {
     200,
     [{ status: 403, description: 'Admin access required' }],
   )
-  async findAllForAdmin(): Promise<LoanApplication[]> {
-    return this.loansService.findAll();
+  @ApiResponse({ 
+    status: 200, 
+    description: 'All loan applications retrieved successfully',
+    type: [LoanApplicationResponseDto]
+  })
+  async findAllForAdmin(): Promise<LoanApplicationResponseDto[]> {
+    const loanApplications = await this.loansService.findAll();
+    return LoanApplicationMapper.toResponseDtoArray(loanApplications);
   }
 
   @Get(':id')
@@ -72,8 +97,14 @@ export class LoansController {
     200,
     [{ status: 404, description: 'Loan application not found' }],
   )
-  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<LoanApplication> {
-    return this.loansService.findOne(id);
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Loan application retrieved successfully',
+    type: LoanApplicationResponseDto
+  })
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<LoanApplicationResponseDto> {
+    const loanApplication = await this.loansService.findOne(id);
+    return LoanApplicationMapper.toResponseDto(loanApplication);
   }
 
   @Post('claim/:id')
@@ -87,11 +118,17 @@ export class LoansController {
       { status: 404, description: 'Application not found' },
     ],
   )
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Application claimed successfully',
+    type: LoanApplicationResponseDto
+  })
   async claimApplication(
     @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<LoanApplication> {
-    return this.loansService.claimGuestApplication(user.id, id);
+  ): Promise<LoanApplicationResponseDto> {
+    const loanApplication = await this.loansService.claimGuestApplication(user.id, id);
+    return LoanApplicationMapper.toResponseDto(loanApplication);
   }
 
   @Patch(':id/status')
@@ -106,11 +143,17 @@ export class LoansController {
       { status: 404, description: 'Loan application not found' },
     ],
   )
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Loan status updated successfully',
+    type: LoanApplicationResponseDto
+  })
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateLoanStatusDto: UpdateLoanStatusDto,
-  ): Promise<LoanApplication> {
-    return this.loansService.updateStatus(id, updateLoanStatusDto);
+  ): Promise<LoanApplicationResponseDto> {
+    const loanApplication = await this.loansService.updateStatus(id, updateLoanStatusDto);
+    return LoanApplicationMapper.toResponseDto(loanApplication);
   }
 
   @Delete(':id')

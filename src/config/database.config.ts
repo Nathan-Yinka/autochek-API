@@ -12,10 +12,10 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   type: 'better-sqlite3',
   database: configService.get('DATABASE_PATH') || 'autochek.db',
   entities: [User, Vehicle, VehicleImage, Valuation, LoanApplication, Offer, Notification],
-  synchronize: configService.get('NODE_ENV') === 'development',
+  synchronize: false, // Use migrations instead
   logging: configService.get('NODE_ENV') === 'development',
   migrations: ['dist/database/migrations/*.js'],
-  migrationsRun: false, // Run migrations manually
+  // migrationsRun: true, // Auto-run migrations on startup
 });
 
 // Keep backward compatibility
@@ -23,7 +23,9 @@ export const databaseConfig: TypeOrmModuleOptions = {
   type: 'better-sqlite3',
   database: 'autochek.db',
   entities: [User, Vehicle, VehicleImage, Valuation, LoanApplication, Offer, Notification],
-  synchronize: true,
+  synchronize: false,
   logging: false,
+  migrations: ['dist/database/migrations/*.js'],
+  migrationsRun: true,
 };
 

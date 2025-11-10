@@ -18,7 +18,7 @@ async function seed() {
     type: 'better-sqlite3',
     database: process.env.DATABASE_PATH || 'autochek.db',
     entities: [User, Vehicle, VehicleImage, Valuation, LoanApplication, Offer, Notification],
-    synchronize: false, // Don't auto-sync, use migrations
+    synchronize: false, // Auto-sync schema
   });
 
   await dataSource.initialize();
@@ -276,11 +276,11 @@ async function seed() {
     snapshotRetailValue: 5500000,
     snapshotLoanValue: 5200000,
     valuationFetchedAt: new Date(),
-    requestedLoanAmount: 4500000,
     requestedDownPaymentPct: 0.15,
-    requestedDownPaymentAmount: 825000,
     requestedTermMonths: 48,
-    requestedApr: 0.18,
+    desiredMonthlyPayment: 150000,
+    desiredInterestRate: 0.18,
+    currency: Currency.NGN,
     ltvCap: 1.10,
     plannedDownAmount: 825000,
     maxFinance: 5720000,
@@ -305,11 +305,11 @@ async function seed() {
     snapshotRetailValue: 4800000,
     snapshotLoanValue: 4500000,
     valuationFetchedAt: new Date(),
-    requestedLoanAmount: 3800000,
     requestedDownPaymentPct: 0.20,
-    requestedDownPaymentAmount: 960000,
     requestedTermMonths: 36,
-    requestedApr: 0.16,
+    desiredMonthlyPayment: 130000,
+    desiredInterestRate: 0.16,
+    currency: Currency.NGN,
     ltvCap: 1.10,
     plannedDownAmount: 960000,
     maxFinance: 4950000,

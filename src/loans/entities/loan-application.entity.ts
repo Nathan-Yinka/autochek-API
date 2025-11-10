@@ -80,53 +80,20 @@ export class LoanApplication {
   @Column({ type: 'datetime', nullable: true })
   valuationFetchedAt?: Date;
 
-  @Column('float', { nullable: true })
-  requestedLoanAmount?: number;
-
-  @Column('float', { nullable: true })
-  requestedDownPaymentPct?: number;
-
-  @Column('float', { nullable: true })
-  requestedDownPaymentAmount?: number;
+  @Column('float')
+  requestedDownPaymentPct: number;
 
   @Column('int')
   requestedTermMonths: number;
 
-  @Column('float', { nullable: true })
-  requestedApr?: number;
+  @Column('float')
+  desiredMonthlyPayment: number;
+
+  @Column('float')
+  desiredInterestRate: number;
 
   @Column({ type: 'text', default: Currency.NGN })
-  desiredLoanCurrency: Currency;
-
-  @Column('float', { nullable: true })
-  desiredMonthlyPayment?: number;
-
-  @Column('float', { nullable: true })
-  desiredInterestRate?: number;
-
-  @Column('float', { nullable: true })
-  desiredEquityContribution?: number;
-
-  @Column({ length: 32, nullable: true })
-  interestRateType?: string;
-
-  @Column('float', { nullable: true })
-  desiredResidualBalloonPct?: number;
-
-  @Column({ type: 'int', nullable: true })
-  desiredRepaymentDate?: number;
-
-  @Column({ type: 'boolean', default: false })
-  subscribeRoadworthiness: boolean;
-
-  @Column({ type: 'boolean', default: false })
-  subscribeLicenseRenewal: boolean;
-
-  @Column({ length: 32, nullable: true })
-  feePaymentPreference?: string;
-
-  @Column({ type: 'json', nullable: true })
-  upfrontPaymentItems?: string[];
+  currency: Currency;
 
   @Column('float')
   ltvCap: number;
