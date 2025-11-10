@@ -26,6 +26,7 @@ export class NotificationsService {
       title,
       message,
       data,
+      isAdmin: false,
     });
 
     const saved = await this.notificationsRepository.save(notification);
@@ -35,9 +36,32 @@ export class NotificationsService {
     return saved;
   }
 
+  async createAdminNotification(
+    type: NotificationType,
+    title: string,
+    message: string,
+    data?: Record<string, any>,
+  ): Promise<Notification> {
+    const notification = this.notificationsRepository.create({
+      userId: undefined,
+      type,
+      title,
+      message,
+      data,
+      isAdmin: true,
+    });
+
+    const saved = await this.notificationsRepository.save(notification);
+
+    // Send to all admins via WebSocket
+    this.notificationsGateway.sendToAdmins(saved);
+
+    return saved;
+  }
+
   async findByUserId(userId: string): Promise<Notification[]> {
     return this.notificationsRepository.find({
-      where: { userId },
+      where: { userId, isAdmin: false },
       order: { createdAt: 'DESC' },
     });
   }
@@ -46,9 +70,17 @@ export class NotificationsService {
     return this.findByUserId(userId);
   }
 
+  async getAdminNotifications(): Promise<Notification[]> {
+    // Simply fetch all notifications where isAdmin = true
+    return this.notificationsRepository.find({
+      where: { isAdmin: true },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async markAsRead(id: string, userId: string): Promise<Notification> {
     const notification = await this.notificationsRepository.findOne({ 
-      where: { id, userId } 
+      where: { id, userId, isAdmin: false } 
     });
     if (!notification) {
       throw new Error('Notification not found');
@@ -64,6 +96,7 @@ export class NotificationsService {
       .set({ read: true })
       .where('id IN (:...ids)', { ids: notificationIds })
       .andWhere('userId = :userId', { userId })
+      .andWhere('isAdmin = :isAdmin', { isAdmin: false })
       .execute();
 
     return { updated: result.affected || 0 };
@@ -110,31 +143,13 @@ export class NotificationsService {
   }
 
   async notifyAdminNewLoan(loanId: string, userName: string, amount: number): Promise<void> {
-    const adminUsers = await this.notificationsRepository.manager
-      .createQueryBuilder()
-      .select('user.id')
-      .from('users', 'user')
-      .where('user.role = :role', { role: 'admin' })
-      .getRawMany();
-
-    const notification = {
-      type: NotificationType.LOAN_SUBMITTED,
-      title: 'New Loan Application',
-      message: `${userName} applied for a loan of $${amount.toLocaleString()}. Review required.`,
-      data: { loanId, amount },
-    };
-
-    for (const admin of adminUsers) {
-      await this.create(
-        admin.user_id,
-        NotificationType.LOAN_SUBMITTED,
-        notification.title,
-        notification.message,
-        notification.data,
-      );
-    }
-
-    this.notificationsGateway.sendToAdmins(notification);
+    // Create ONE notification for all admins
+    await this.createAdminNotification(
+      NotificationType.LOAN_SUBMITTED,
+      'New Loan Application',
+      `${userName} applied for a loan of ₦${amount.toLocaleString()}. Review required.`,
+      { loanId, amount, userName },
+    );
   }
 
   async notifyOfferAccepted(
@@ -143,43 +158,12 @@ export class NotificationsService {
     amount: number,
     userId: string,
   ): Promise<void> {
-    // Notify admin if adminId is provided
-    if (adminId) {
-      await this.create(
-        adminId,
-        NotificationType.OFFER_ACCEPTED,
-        'Offer Accepted',
-        `A user has accepted an offer for $${amount.toLocaleString()}. Proceed with disbursement.`,
-        { offerId, amount, userId },
-      );
-    }
-
-    // Also notify all other admins
-    const adminUsers = await this.notificationsRepository.manager
-      .createQueryBuilder()
-      .select('user.id')
-      .from('users', 'user')
-      .where('user.role = :role', { role: 'admin' })
-      .andWhere('user.id != :adminId', { adminId: adminId || 'none' })
-      .getRawMany();
-
-    const notification = {
-      type: NotificationType.OFFER_ACCEPTED,
-      title: 'Offer Accepted',
-      message: `A user has accepted an offer for $${amount.toLocaleString()}. Review and process.`,
-      data: { offerId, amount, userId },
-    };
-
-    for (const admin of adminUsers) {
-      await this.create(
-        admin.user_id,
-        NotificationType.OFFER_ACCEPTED,
-        notification.title,
-        notification.message,
-        notification.data,
-      );
-    }
-
-    this.notificationsGateway.sendToAdmins(notification);
+    // Create ONE notification for all admins
+    await this.createAdminNotification(
+      NotificationType.OFFER_ACCEPTED,
+      'Offer Accepted',
+      `A user has accepted an offer for ₦${amount.toLocaleString()}. Proceed with disbursement.`,
+      { offerId, amount, userId },
+    );
   }
 }

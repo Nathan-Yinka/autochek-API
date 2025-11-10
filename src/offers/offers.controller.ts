@@ -170,7 +170,7 @@ export class OffersController {
     return OfferMapper.toResponseDto(offer);
   }
 
-  @Patch(':id/decline')
+    @Patch(':id/decline')
   @ApiEndpoint(
     'Decline offer with optional reason',
     'Offer declined successfully',

@@ -82,17 +82,20 @@ export class OffersService {
         relations: ['application'],
       });
 
-      await this.notificationsService.notifyOfferCreated(
-        loanApplication.loan_userId,
-        offerId,
-        monthlyPayment,
-      );
+      // Only notify if loan has a userId (not a guest application)
+      if (loanApplication.loan_userId) {
+        await this.notificationsService.notifyOfferCreated(
+          loanApplication.loan_userId,
+          offerId,
+          monthlyPayment,
+        );
 
-      await this.notificationsService.notifyLoanApproved(
-        loanApplication.loan_userId,
-        createOfferDto.loanApplicationId,
-        createOfferDto.offeredLoanAmount,
-      );
+        await this.notificationsService.notifyLoanApproved(
+          loanApplication.loan_userId,
+          createOfferDto.loanApplicationId,
+          createOfferDto.offeredLoanAmount,
+        );
+      }
 
       return offerWithLoan!;
     });

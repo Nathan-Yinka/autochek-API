@@ -6,8 +6,11 @@ export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid')
-  userId: string;
+  @Column('uuid', { nullable: true })
+  userId?: string;
+
+  @Column({ type: 'boolean', default: false })
+  isAdmin: boolean;
 
   @Column({ type: 'text' })
   type: NotificationType;

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialSchema1762758081851 implements MigrationInterface {
-    name = 'InitialSchema1762758081851'
+export class InitialSchema1762759369310 implements MigrationInterface {
+    name = 'InitialSchema1762759369310'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "valuations" ("id" varchar PRIMARY KEY NOT NULL, "vehicleId" varchar NOT NULL, "retailValue" float NOT NULL, "loanValue" float NOT NULL, "source" text NOT NULL, "fetchedAt" datetime NOT NULL, "providerRef" text, "createdAt" datetime NOT NULL DEFAULT (datetime('now')))`);
@@ -16,7 +16,7 @@ export class InitialSchema1762758081851 implements MigrationInterface {
         await queryRunner.query(`CREATE INDEX "IDX_62cc84cd393f8b011693c0873c" ON "loan_applications" ("applicantEmail") `);
         await queryRunner.query(`CREATE TABLE "users" ("id" varchar PRIMARY KEY NOT NULL, "firstName" varchar(120) NOT NULL, "lastName" varchar(120) NOT NULL, "email" varchar(120) NOT NULL, "password" varchar(255) NOT NULL, "phone" varchar(32), "role" text NOT NULL DEFAULT ('user'), "createdAt" datetime NOT NULL DEFAULT (datetime('now')), "updatedAt" datetime NOT NULL DEFAULT (datetime('now')))`);
         await queryRunner.query(`CREATE UNIQUE INDEX "IDX_97672ac88f789774dd47f7c8be" ON "users" ("email") `);
-        await queryRunner.query(`CREATE TABLE "notifications" ("id" varchar PRIMARY KEY NOT NULL, "userId" varchar NOT NULL, "type" text NOT NULL, "title" varchar NOT NULL, "message" text NOT NULL, "data" json, "read" boolean NOT NULL DEFAULT (0), "createdAt" datetime NOT NULL DEFAULT (datetime('now')))`);
+        await queryRunner.query(`CREATE TABLE "notifications" ("id" varchar PRIMARY KEY NOT NULL, "userId" varchar, "isAdmin" boolean NOT NULL DEFAULT (0), "type" text NOT NULL, "title" varchar NOT NULL, "message" text NOT NULL, "data" json, "read" boolean NOT NULL DEFAULT (0), "createdAt" datetime NOT NULL DEFAULT (datetime('now')))`);
         await queryRunner.query(`DROP INDEX "IDX_e236b629bac439792309e7e14e"`);
         await queryRunner.query(`CREATE TABLE "temporary_valuations" ("id" varchar PRIMARY KEY NOT NULL, "vehicleId" varchar NOT NULL, "retailValue" float NOT NULL, "loanValue" float NOT NULL, "source" text NOT NULL, "fetchedAt" datetime NOT NULL, "providerRef" text, "createdAt" datetime NOT NULL DEFAULT (datetime('now')), CONSTRAINT "FK_80cceca62367c2459f0eb75a929" FOREIGN KEY ("vehicleId") REFERENCES "vehicles" ("id") ON DELETE CASCADE ON UPDATE NO ACTION)`);
         await queryRunner.query(`INSERT INTO "temporary_valuations"("id", "vehicleId", "retailValue", "loanValue", "source", "fetchedAt", "providerRef", "createdAt") SELECT "id", "vehicleId", "retailValue", "loanValue", "source", "fetchedAt", "providerRef", "createdAt" FROM "valuations"`);

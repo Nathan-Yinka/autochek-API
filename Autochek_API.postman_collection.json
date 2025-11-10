@@ -1105,6 +1105,37 @@
 					"response": []
 				},
 				{
+					"name": "Get Admin Notifications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications?admin=true",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"],
+							"query": [
+								{
+									"key": "admin",
+									"value": "true",
+									"description": "Fetch admin notifications (requires admin role)"
+								}
+							]
+						},
+						"description": "Get all admin notifications (admin only) - returns 403 if user is not admin"
+					},
+					"response": []
+				},
+				{
 					"name": "Get Unread Notifications",
 					"request": {
 						"auth": {
@@ -1120,17 +1151,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/notifications?read=false",
+							"raw": "{{baseUrl}}/notifications",
 							"host": ["{{baseUrl}}"],
-							"path": ["notifications"],
-							"query": [
-								{
-									"key": "read",
-									"value": "false"
-								}
-							]
+							"path": ["notifications"]
 						},
-						"description": "Get only unread notifications"
+						"description": "Get all notifications for logged-in user"
 					},
 					"response": []
 				},
