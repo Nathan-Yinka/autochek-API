@@ -6,7 +6,7 @@ import {
   SubscribeMessage,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UnauthorizedException } from '@nestjs/common';
+import { Logger, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../common/enums/user-role.enum';
@@ -44,26 +44,52 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         throw new UnauthorizedException('Invalid token');
       }
 
-      client.data.user = user;
-      
-      const userRoom = `user:${user.id}`;
-      await client.join(userRoom);
+      // Check if requesting admin room only
+      const adminOnly = client.handshake.query.admin === 'true' || client.handshake.auth.admin === true;
 
-      if (user.role === UserRole.ADMIN) {
+      if (adminOnly) {
+        // Verify user is admin
+        if (user.role !== UserRole.ADMIN) {
+          this.logger.warn(`Non-admin user ${user.email} attempted to join admin room`);
+          throw new ForbiddenException('Admin access required to connect to admin notifications');
+        }
+
+        // Join only admin room (not user-specific room)
+        client.data.user = user;
+        client.data.adminOnly = true;
         await client.join('admins');
-        this.logger.log(`Admin ${user.email} connected to socket ${client.id}`);
+        
+        this.logger.log(`Admin ${user.email} connected to admin room only: ${client.id}`);
+        
+        client.emit(SocketEvent.CONNECTION, {
+          message: 'Connected to admin notifications',
+          userId: user.id,
+          role: user.role,
+          adminOnly: true,
+        });
       } else {
-        this.logger.log(`User ${user.email} connected to socket ${client.id}`);
-      }
+        // Normal connection - join user room ONLY (not admin room)
+        client.data.user = user;
+        client.data.adminOnly = false;
+        
+        const userRoom = `user:${user.id}`;
+        await client.join(userRoom);
 
-      client.emit(SocketEvent.CONNECTION, {
-        message: 'Connected to notifications',
-        userId: user.id,
-        role: user.role,
-      });
+        this.logger.log(`User ${user.email} connected to personal room: ${client.id}`);
+
+        client.emit(SocketEvent.CONNECTION, {
+          message: 'Connected to notifications',
+          userId: user.id,
+          role: user.role,
+          adminOnly: false,
+        });
+      }
     } catch (error) {
       this.logger.error(`Connection failed: ${error.message}`);
-      client.emit(SocketEvent.ERROR, { message: 'Authentication failed' });
+      client.emit(SocketEvent.ERROR, { 
+        message: error.message || 'Authentication failed',
+        statusCode: error instanceof ForbiddenException ? 403 : 401
+      });
       client.disconnect();
     }
   }

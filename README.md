@@ -224,11 +224,13 @@ curl -X GET http://localhost:3000/api/v1/vehicles \
 
 ### WebSocket - Real-Time Notifications
 
-The API supports real-time notifications via WebSocket (Socket.IO).
+The API supports real-time notifications via WebSocket (Socket.IO) with separate rooms for user and admin notifications.
 
-**Connect to WebSocket:**
+#### **Connection Modes**
+
+**Mode 1: Personal Notifications (Default)**
 ```javascript
-// Using socket.io-client
+// Connect to personal notification room
 import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:3000', {
@@ -237,18 +239,59 @@ const socket = io('http://localhost:3000', {
   }
 });
 
-// Listen for notifications
-socket.on('notification', (data) => {
-  console.log('New notification:', data);
+// Listen for personal notifications
+socket.on('notification', (notification) => {
+  console.log('Personal notification:', notification);
+  // notification.isAdmin = false
+  // notification.userId = your-user-id
 });
 
-// Connection events
 socket.on('connect', () => {
-  console.log('Connected to WebSocket');
+  console.log('Connected to personal notifications');
 });
 ```
 
-**Test Real-Time Notifications:**
+**Mode 2: Admin Notifications (Admin Only)**
+```javascript
+// Connect to admin notification room
+const adminSocket = io('http://localhost:3000', {
+  auth: {
+    token: 'admin-jwt-token',
+    admin: true  // ✅ Admin-only mode
+  }
+});
+
+// Listen for admin notifications
+adminSocket.on('notification', (notification) => {
+  console.log('Admin notification:', notification);
+  // notification.isAdmin = true
+  // notification.userId = null
+});
+
+adminSocket.on('error', (error) => {
+  if (error.statusCode === 403) {
+    console.error('Admin access required!');
+  }
+});
+```
+
+**Using Query Parameter:**
+```javascript
+const socket = io('http://localhost:3000?admin=true', {
+  auth: { token: 'admin-token' }
+});
+```
+
+#### **Room Logic**
+
+| User Type | Connection Mode | Rooms Joined | Receives |
+|-----------|----------------|--------------|----------|
+| Regular User | Normal | `user:userId` | Personal notifications only |
+| Admin | Normal | `user:adminId` | Personal notifications only |
+| Admin | `admin=true` | `admins` | Admin notifications only |
+| Regular User | `admin=true` | ❌ 403 Forbidden | Connection rejected |
+
+#### **Test Real-Time Notifications:**
 
 1. **Open Browser Console** at http://localhost:3000
 2. **Paste this code:**
@@ -259,20 +302,51 @@ socket.on('notification', (data) => console.log('📢 Notification:', data));
 ```
 
 3. **Trigger notifications** by:
-   - Submitting a loan application (admin gets notified)
-   - Creating an offer (user gets notified)
-   - Updating loan status (user gets notified)
-   - User declining offer (admin gets notified)
+   - Submitting a loan application → Creates admin notification (`isAdmin=true`)
+   - Creating an offer → Sends to user (`isAdmin=false`)
+   - Updating loan status → Sends to user (`isAdmin=false`)
+   - User accepting offer → Creates admin notification (`isAdmin=true`)
 
 4. **See real-time updates** in console!
 
+#### **Notification Structure**
+
+**User Notification:**
+```json
+{
+  "id": "...",
+  "userId": "user-id",
+  "isAdmin": false,
+  "type": "offer_created",
+  "title": "New Financing Offer Available",
+  "message": "You have a new financing offer...",
+  "data": { "offerId": "...", "monthlyPayment": 125000 },
+  "read": false,
+  "createdAt": "..."
+}
+```
+
+**Admin Notification:**
+```json
+{
+  "id": "...",
+  "userId": null,
+  "isAdmin": true,
+  "type": "loan_submitted",
+  "title": "New Loan Application",
+  "message": "John Doe applied for a loan of ₦5,000,000...",
+  "data": { "loanId": "...", "amount": 5000000, "userName": "John Doe" },
+  "read": false,
+  "createdAt": "..."
+}
+```
+
 **Notification Types:**
-- `loan_application_submitted` - Admin notified when user applies
-- `loan_status_updated` - User notified of status changes
-- `loan_approved` - User notified when loan approved
-- `offer_created` - User notified of new offer
-- `offer_accepted` - Admin notified when user accepts
-- `offer_declined` - Admin notified when user declines
+- `loan_submitted` - Admin notified when user applies (`isAdmin=true`)
+- `loan_approved` - User notified when loan approved (`isAdmin=false`)
+- `loan_rejected` - User notified of rejection (`isAdmin=false`)
+- `offer_created` - User notified of new offer (`isAdmin=false`)
+- `offer_accepted` - Admin notified when user accepts (`isAdmin=true`)
 
 ---
 
@@ -320,9 +394,12 @@ npm run migration:show
 - ✅ External VIN API integration with fallback
 - ✅ Guest loan applications (no login required)
 - ✅ Loan eligibility validation (LTV-based)
+- ✅ Automatic loan amount calculation from down payment
 - ✅ Admin offer creation with auto-calculations
 - ✅ User can accept/decline offers with notifications
-- ✅ Real-time notifications via WebSocket
+- ✅ Real-time notifications via WebSocket with admin rooms
+- ✅ Separate admin and user notification streams
+- ✅ Response DTOs for clean API responses (no sensitive data)
 - ✅ Automatic offer expiry handling
 - ✅ Comprehensive API documentation
 - ✅ Database migrations for version control
@@ -510,15 +587,17 @@ POST /api/v1/loans
   "applicantEmail": "tester@test.com",
   "applicantPhone": "+2348012345678",
   "bvn": "12345678901",
-  "nin": "12345678901234",
   "dateOfBirth": "1990-01-15",
   "residentialAddress": "123 Main St, Lagos",
-  "requestedLoanAmount": 2000000,
+  "requestedDownPaymentPct": 0.40,
   "requestedTermMonths": 48,
-  "requestedDownPaymentPct": 0.40
+  "desiredMonthlyPayment": 125000,
+  "desiredInterestRate": 0.18
 }
 ```
-Response shows instant eligibility feedback.
+**Note:** Loan amount is calculated automatically from vehicle price and down payment. The `desiredMonthlyPayment` and `desiredInterestRate` help admins create appropriate offers.
+
+Response shows instant eligibility feedback with calculated loan amount.
 
 **Step 4: Check My Applications**
 ```
@@ -540,8 +619,10 @@ POST /api/v1/loans
   "applicantName": "Guest User",
   "applicantEmail": "guest@example.com",
   "bvn": "98765432109",
-  "requestedLoanAmount": 1500000,
-  "requestedTermMonths": 36
+  "requestedDownPaymentPct": 0.40,
+  "requestedTermMonths": 36,
+  "desiredMonthlyPayment": 100000,
+  "desiredInterestRate": 0.18
 }
 ```
 Save the application ID from response!
@@ -662,6 +743,12 @@ GET /api/v1/notifications
 ```
 See notification about new offer.
 
+**For Admin to Check Admin Notifications:**
+```
+GET /api/v1/notifications?admin=true
+```
+Returns all admin notifications (requires admin role).
+
 **Step 4: View My Offers**
 ```
 GET /api/v1/offers
@@ -720,11 +807,15 @@ socket.on('connect', () => console.log('✅ Connected'));
 5. Paste:
 ```javascript
 const token = 'your-admin-token';
-const socket = io('http://localhost:3000', { auth: { token } });
+const socket = io('http://localhost:3000', { 
+  auth: { token, admin: true }  // Connect to admin room
+});
 socket.on('notification', (data) => {
   console.log('🔔 ADMIN received:', data);
+  // data.isAdmin will be true
 });
-socket.on('connect', () => console.log('✅ Connected'));
+socket.on('connect', () => console.log('✅ Connected to admin room'));
+socket.on('error', (err) => console.error('❌ Error:', err));
 ```
 
 **Step 2: Trigger Notifications**
@@ -784,9 +875,19 @@ GET /api/v1/valuations/vin/<vin>
 ```
 See all past valuations for a vehicle.
 
-**Bulk Notification Management**
+**Notification Management**
 ```
-PATCH /api/v1/notifications/mark-read
+# Get personal notifications
+GET /api/v1/notifications
+
+# Get admin notifications (admin only)
+GET /api/v1/notifications?admin=true
+
+# Mark as read
+PATCH /api/v1/notifications/:id/read
+
+# Bulk mark as read
+PATCH /api/v1/notifications/bulk/read
 {
   "notificationIds": ["id1", "id2", "id3"]
 }
@@ -929,7 +1030,12 @@ Two Postman files for complete API testing:
 
 📁 Notifications
 └── Get My Notifications → Click Send
-    ℹ️ See all your notifications
+    ℹ️ See all your notifications (isAdmin=false)
+    
+📁 Notifications (as Admin)
+└── Get Admin Notifications → Click Send
+    ℹ️ See all admin notifications (isAdmin=true)
+    ✅ Returns 403 if not admin role
 ```
 
 **3. Test as Guest (No Auth):**
@@ -979,14 +1085,10 @@ The environment includes:
 | Variable | Description | Auto-saved |
 |----------|-------------|------------|
 | `baseUrl` | API base URL | ❌ Pre-set |
-| `authToken` | JWT token | ✅ On login |
+| `access_token` | JWT token | ✅ On login |
 | `vehicleId` | Vehicle ID | ✅ On create |
 | `loanId` | Loan application ID | ✅ On submit |
 | `offerId` | Offer ID | ✅ On create |
-| `adminEmail` | Admin email | ❌ Pre-set |
-| `adminPassword` | Admin password | ❌ Pre-set |
-| `userEmail` | User email | ❌ Pre-set |
-| `userPassword` | User password | ❌ Pre-set |
 
 ### Testing Different Scenarios
 
@@ -1014,11 +1116,107 @@ The environment includes:
 
 ### Collection Statistics
 
-- **Total Endpoints**: 38
-- **Authentication Required**: 33
+- **Total Endpoints**: 40+
+- **Authentication Required**: 35+
 - **Public Endpoints**: 5
-- **Admin Only**: 12
-- **User Accessible**: 21
+- **Admin Only**: 14+
+- **User Accessible**: 21+
+
+---
+
+## Loan Application Logic
+
+### How Loan Amounts Are Calculated
+
+The API automatically calculates the loan amount based on the vehicle's listing price and the applicant's down payment percentage. You **do not** specify the loan amount directly.
+
+**Formula:**
+```
+downPayment = listingPrice × requestedDownPaymentPct
+loanAmount = listingPrice - downPayment
+```
+
+**Example:**
+- Vehicle listing price: ₦5,000,000
+- Down payment: 40% (0.40)
+- Calculated down payment: ₦2,000,000
+- **Calculated loan amount: ₦3,000,000** ✅
+
+### Required Fields
+
+When submitting a loan application, you must provide:
+
+1. **`requestedDownPaymentPct`** (required) - The percentage you can put down (e.g., 0.40 = 40%)
+2. **`requestedTermMonths`** (required) - Desired loan term in months (12-84)
+3. **`desiredMonthlyPayment`** (required) - What you can afford to pay monthly (e.g., 125000)
+4. **`desiredInterestRate`** (required) - Interest rate you hope for (e.g., 0.18 = 18%)
+
+The `desiredMonthlyPayment` and `desiredInterestRate` are used by admins to create appropriate, realistic offers that match your budget and expectations.
+
+### Fields You Should NOT Send
+
+- ❌ `requestedLoanAmount` - This is calculated automatically
+- ❌ `requestedDownPaymentAmount` - Use percentage instead
+- ❌ `requestedApr` - Use `desiredInterestRate` instead
+
+---
+
+## API Response Structure
+
+All API responses follow a consistent structure with proper DTOs to avoid exposing sensitive data:
+
+### Loan Application Response
+```json
+{
+  "success": true,
+  "data": {
+    "id": "loan-id",
+    "vehicleId": "vehicle-id",
+    "user": {
+      "id": "user-id",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john@example.com"
+    },
+    "applicantName": "John Doe",
+    "applicantEmail": "john@example.com",
+    "listingPrice": 5000000,
+    "requestedDownPaymentPct": 0.40,
+    "requestedTermMonths": 48,
+    "desiredMonthlyPayment": 125000,
+    "desiredInterestRate": 0.18,
+    "validatedLoanAmount": 3000000,
+    "eligibilityStatus": "ELIGIBLE",
+    "status": "SUBMITTED",
+    "isGuest": false,
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+**Note:** Sensitive data (BVN, NIN, passwords) is NEVER returned in responses. Full vehicle details are excluded; only `vehicleId` is returned for cleaner payloads.
+
+### Offer Response
+```json
+{
+  "success": true,
+  "data": {
+    "id": "offer-id",
+    "loanApplicationId": "loan-id",
+    "lenderCode": "BACKOFFICE",
+    "offeredLoanAmount": 3000000,
+    "apr": 0.18,
+    "termMonths": 48,
+    "monthlyPayment": 123456,
+    "totalInterest": 1025888,
+    "status": "ISSUED",
+    "expiresAt": "...",
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
 
 ---
 
